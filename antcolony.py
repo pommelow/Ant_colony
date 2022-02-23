@@ -82,6 +82,67 @@ class AntColony():
             path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
         return path
 
+    def update_tau(self, pathes, method='basic'):
+
+        # Basic Algorithm
+        if method == 'basic':
+            # Evaporation:
+            for origin, destiny in self.graph.edges(data=False):
+                self.graph[origin][destiny]['tau'] = (
+                    1-self.rho)*self.graph[origin][destiny]['tau']
+            for path in pathes:
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+
+        # ASrank
+        if method == 'asrank':
+            n_to_update = 5
+            # Evaporation:
+            for origin, destiny, edge in self.graph.edges(data=True):
+                self.graph[origin][destiny]['tau'] = (
+                    1-self.rho)*self.graph[origin][destiny]['tau']
+
+            # Adding pheromone weighted by path's rank
+            for path in pathes[:n_to_update]:
+                weight = 1
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+                weight += -1/n_to_update
+
+        # Elitist Ant System (Elistist AS)
+        if method == 'elitist':
+            # Evaporation:
+            for origin, destiny, edge in self.graph.edges(data=True):
+                self.graph[origin][destiny]['tau'] = (
+                    1-self.rho)*self.graph[origin][destiny]['tau']
+
+            extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
+            for i in range(len(pathes[0]-1)):  # Reward best ant
+                self.graph[path[i]][path[i+1]]['tau'] += extra_phero * \
+                    self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
+
+            # Adding pheromone
+            for path in pathes:
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+
+        # MMAS
+        if method == 'mmas':
+            tau_min = 0.1
+            tau_max = 10.0
+            # Evaporation
+            for origin, destiny in self.graph.edges(data=False):
+                update = (1-self.rho)*self.graph[origin][destiny]['tau']
+                self.graph[origin][destiny]['tau'] = max(update, tau_min)
+
+            for i in range(len(pathes[0]-1)):  # Only best at adds pheromone
+                increment = self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
+                self.graph[path[i]][path[i+1]]['tau'] = min(
+                    self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
+
     def epoch(self):
         pathes = []
         performances = []
@@ -89,14 +150,11 @@ class AntColony():
             path = self.pick_path()
             performances.append(
                 run(n1=128, n2=128, n3=128, iteration=100, **dict(path[3:]))[0])
+
         pathes = [path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
 
-        # Reward best ants
-        # ...
-
-        # Update tau
-        # ...
+        update_tau(pathes, method='basic')
 
 
 alpha = 0
