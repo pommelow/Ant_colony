@@ -83,7 +83,7 @@ class AntColony():
         return path
 
     def update_tau(self, pathes, method='basic'):
-
+        """ Updates the amount of pheromone on each edge based on the method choosen """
         # Basic Algorithm
         if method == 'basic':
             # Evaporation:
@@ -154,7 +154,7 @@ class AntColony():
         pathes = [path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
 
-        update_tau(pathes, method='basic')
+        self.update_tau(pathes, method='basic')
 
 
 alpha = 0
