@@ -16,6 +16,9 @@ def make(simd="avx2", Olevel="-O3"):
     os.chdir("..")
 
 
-def build_change(comb):
+def build(comb):
     for combination in comb:
-        make(comb[0], comb[1])
+        make(combination[0], combination[1])
+
+
+build(comb_build)
