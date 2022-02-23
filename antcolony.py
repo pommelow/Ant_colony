@@ -158,7 +158,7 @@ class AntColony():
         for _ in range(self.nb_ant):
             path = self.pick_path()
             # print(path)
-            make(path[1][1], path[2][1][1])
+            make(path[1][1], path[2][1])
             performances.append(
                 run(n1=128, n2=128, n3=128, iteration=100, **dict(path[3:]))[0])
 
@@ -183,7 +183,7 @@ block_size = 64
 
 levels = [("init", {"init"}),
           ("simd", {"avx", "avx2", 'avx512', 'sse'}),
-          ("Olevel", {"O2", "O3", "Ofast"}),
+          ("Olevel", {"-O2", "-O3", "-Ofast"}),
           ("num_thread", set([2**j for j in range(0, 6)])),
           ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
           ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),

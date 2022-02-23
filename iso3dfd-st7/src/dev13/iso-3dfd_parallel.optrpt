@@ -1,0 +1,52 @@
+Intel(R) Advisor can now assist with vectorization and show optimization
+  report messages with your source code.
+See "https://software.intel.com/en-us/intel-advisor-xe" for details.
+
+
+Begin optimization report for: iso_3dfd(float *, float *, float *, float *, int, int, int, int, int, int, int, int)
+
+    Report from: Vector optimizations [vec]
+
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at iso-3dfd_parallel.cc(162,3)
+   remark #15543: loop was not vectorized: loop with function call not considered an optimization candidate.
+LOOP END
+===========================================================================
+
+Begin optimization report for: iso_3dfd_it(float *, float *, float *, float *, int, int, int, int, int, int, int)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at iso-3dfd_parallel.cc(95,6)
+   remark #15542: loop was not vectorized: inner loop was already vectorized
+
+   LOOP BEGIN at iso-3dfd_parallel.cc(96,7)
+      remark #15542: loop was not vectorized: inner loop was already vectorized
+
+      LOOP BEGIN at iso-3dfd_parallel.cc(106,8)
+         remark #15300: LOOP WAS VECTORIZED
+      LOOP END
+
+      LOOP BEGIN at iso-3dfd_parallel.cc(106,8)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at iso-3dfd_parallel.cc(86,3)
+   remark #15543: loop was not vectorized: loop with function call not considered an optimization candidate.
+
+   LOOP BEGIN at iso-3dfd_parallel.cc(86,3)
+      remark #15543: loop was not vectorized: loop with function call not considered an optimization candidate.
+   LOOP END
+LOOP END
+===========================================================================
