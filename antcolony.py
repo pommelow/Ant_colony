@@ -18,7 +18,7 @@ def make(simd="avx2", Olevel="-O3"):
 
 
 def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
-    basename = 'iso3dfd_dev13_cpu_'
+    basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)
     # filename = os.listdir("./iso3dfd-st7/bin/")[0]
     # print(filename)
