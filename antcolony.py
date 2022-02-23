@@ -14,11 +14,11 @@ def make(simd="avx2", Olevel="O3"):
 
 
 def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
-    filename = os.listdir("./iso3dfd-st7/bin/")
+    filename = os.listdir("~/Documents/iso3dfd-st7/bin/")
     print(filename)
     print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
-        f"./iso3dfd-st7/bin/{filename}",
+        f"~/Documents/iso3dfd-st7/bin/{filename}",
         str(n1),
         str(n2),
         str(n3),
