@@ -17,7 +17,7 @@ def make(simd="avx2", Olevel="-O3"):
     os.chdir("..")
 
 
-def run(n1, n2, n3, num_thread, iteration, b1, b2, b3, simd, Olevel):
+def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
     basename = 'iso3dfd_dev13_cpu_'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)
     # filename = os.listdir("./iso3dfd-st7/bin/")[0]
@@ -162,30 +162,31 @@ class AntColony():
             path = self.pick_path()
             # print(path)
             # make(path[1][1], path[2][1])
-            performances.append(
-                run(n1=128, n2=128, n3=128, iteration=100, **dict(path[3:]))[0], path[1][1], path[2][1])
 
-        pathes = [path for _, path in sorted(
+            performances.append(
+                run(path[1][1], path[2][1], n1=128, n2=128,
+                    n3=128, iteration=100, **dict(path[3:]))[0]
+
+        pathes=[path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
 
         self.update_tau(pathes, method='basic')
         # print(pathes)
 
 
-alpha = 0.5
-beta = 0
-rho = 0.2
-Q = 1
-nb_ant = 50
+alpha=0.5
+beta=0
+rho=0.2
+Q=1
+nb_ant=50
 
 
-block_min = 1
-block_max = 256
-block_size = 64
+block_min=1
+block_max=256
+block_size=64
 
 
-print(comb_build, len(comb_build))
-levels_exec = [("init", {"init"}),
+levels_exec=[("init", {"init"}),
                ("simd", {"avx", "avx2", 'avx512', 'sse'}),
                ("Olevel", {"-O2", "-O3", "-Ofast"}),
                ("num_thread", set([2**j for j in range(0, 6)])),
@@ -198,10 +199,10 @@ levels_exec = [("init", {"init"}),
 
 # print(levels[3])
 
-ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels_exec)
+ant_colony=AntColony(alpha, beta, rho, Q, nb_ant, levels_exec)
 # ant_colony.plot_graph()
 
-epoch = 3
+epoch=3
 for k in range(epoch):
     print("EPOCH: %i" % k)
     ant_colony.epoch()
