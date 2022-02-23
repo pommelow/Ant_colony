@@ -5,20 +5,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def make(simd="avx2", Olevel="O3"):
+def make(simd="avx2", Olevel="-O3"):
+    os.chdir("./iso3dfd-st7/")
     try:
         os.system(f"make clean")
-    except Exception:
+    except Exception as e:
+        print(e)
         pass
     os.system(f"make build simd={simd} Olevel={Olevel}")
+    os.chdir("..")
 
 
 def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
-    filename = os.listdir("~/Documents/iso3dfd-st7/bin/")
+    filename = os.listdir("./iso3dfd-st7/bin/")[0]
     print(filename)
     print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
-        f"~/Documents/iso3dfd-st7/bin/{filename}",
+        f"./iso3dfd-st7/bin/{filename}",
         str(n1),
         str(n2),
         str(n3),
@@ -31,9 +34,9 @@ def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
         stdout=subprocess.PIPE)
     p.wait()
     outputs = p.communicate()[0].decode("utf-8").split("\n")
-    time = float(outputs[0].split(" ")[-2])
-    throughput = float(outputs[1].split(" ")[-2])
-    flops = float(outputs[2].split(" ")[-2])
+    time = float(outputs[-4].split(" ")[-2])
+    throughput = float(outputs[-3].split(" ")[-2])
+    flops = float(outputs[-2].split(" ")[-2])
     return time, throughput, flops
 
 
