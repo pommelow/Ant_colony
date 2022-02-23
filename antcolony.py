@@ -6,14 +6,19 @@ import numpy as np
 
 
 def make(simd="avx2", Olevel="-O3"):
+    
     os.chdir("./iso3dfd-st7/")
     try:
-        os.system(f"make clean")
+        
+        subprocess.run(["make", "clean"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     except Exception as e:
+        
         print(e)
         pass
-    os.system(f"make build simd={simd} Olevel={Olevel}")
+    subprocess.run(["make", "build", f"simd={simd}",f" Olevel={Olevel} "],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+
     os.chdir("..")
+    
 
 
 def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
