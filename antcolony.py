@@ -6,11 +6,17 @@ import numpy as np
 
 
 def make(simd="avx2", Olevel="O3"):
+    try:
+        os.system(f"make clean")
+    except Exception:
+        pass
     os.system(f"make build simd={simd} Olevel={Olevel}")
 
 
 def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
     filename = os.listdir("./iso3dfd-st7/bin/")
+    print(filename)
+    print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{filename}",
         str(n1),
@@ -148,6 +154,8 @@ class AntColony():
         performances = []
         for _ in range(self.nb_ant):
             path = self.pick_path()
+            # print(path)
+            make(path[1][1], path[2][1][1])
             performances.append(
                 run(n1=128, n2=128, n3=128, iteration=100, **dict(path[3:]))[0])
 
@@ -155,30 +163,38 @@ class AntColony():
             zip(performances, pathes), key=lambda pair: pair[0])]
 
         self.update_tau(pathes, method='basic')
+        print(pathes)
 
 
-alpha = 0
+alpha = 0.5
 beta = 0
-rho = 0
-Q = 0
-nb_ant = 10
+rho = 0.2
+Q = 1
+nb_ant = 50
 
 
 block_min = 1
 block_max = 256
-block_size = 32
+block_size = 64
 
 
 levels = [("init", {"init"}),
           ("simd", {"avx", "avx2", 'avx512', 'sse'}),
           ("Olevel", {"O2", "O3", "Ofast"}),
-          ("num_thread", range(1, 32)),
+          ("num_thread", set([2**j for j in range(0, 6)])),
           ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
           ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
           ("b3", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
 
           ]
 
-print(levels[6])
 
-# AntColony(alpha, beta, rho, Q, nb_ant, levels)
+# print(levels[3])
+
+ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels)
+# ant_colony.plot_graph()
+
+epoch = 3
+for k in range(epoch):
+    print("EPOCH: %i" % k)
+    ant_colony.epoch()
