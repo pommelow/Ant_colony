@@ -1,3 +1,4 @@
+import itertools
 import os
 import subprocess
 import networkx as nx
@@ -18,8 +19,8 @@ def make(simd="avx2", Olevel="-O3"):
 
 def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
     filename = os.listdir("./iso3dfd-st7/bin/")[0]
-    print(filename)
-    print(n1, n2, num_thread, iteration, b1, b2, b3)
+    # print(filename)
+    # print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{filename}",
         str(n1),
@@ -65,7 +66,7 @@ class AntColony():
                 for choice_j in choices_j:
                     graph.add_edge((name_i, choice_i),
                                    (name_j, choice_j), tau=1, nu=1)
-        print(graph)
+        # print(graph)
         return graph
 
     def plot_graph(self):
@@ -166,7 +167,7 @@ class AntColony():
             zip(performances, pathes), key=lambda pair: pair[0])]
 
         self.update_tau(pathes, method='basic')
-        print(pathes)
+        # print(pathes)
 
 
 alpha = 0.5
@@ -181,23 +182,24 @@ block_max = 256
 block_size = 64
 
 
-levels = [("init", {"init"}),
-          ("simd", {"avx", "avx2", 'avx512', 'sse'}),
-          ("Olevel", {"-O2", "-O3", "-Ofast"}),
-          ("num_thread", set([2**j for j in range(0, 6)])),
-          ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-          ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-          ("b3", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+print(comb_build, len(comb_build))
+levels_exec = [("init", {"init"}),
+               ("simd", {"avx", "avx2", 'avx512', 'sse'}),
+               ("Olevel", {"-O2", "-O3", "-Ofast"}),
+               ("num_thread", set([2**j for j in range(0, 6)])),
+               ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+               ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+               ("b3", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
 
-          ]
+               ]
 
 
 # print(levels[3])
 
-ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels)
+# ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels_exec)
 # ant_colony.plot_graph()
 
-epoch = 3
-for k in range(epoch):
-    print("EPOCH: %i" % k)
-    ant_colony.epoch()
+# epoch = 3
+# for k in range(epoch):
+#     print("EPOCH: %i" % k)
+#     ant_colony.epoch()
