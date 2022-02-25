@@ -45,6 +45,25 @@ def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
     return time, throughput, flops
 
 
+def save_results(lines):
+    """ Saves the reusults in a .txt file"""
+    counter = 0
+    filename = "Results{}.txt"
+    while os.path.isfile(filename.format(counter)):
+        counter += 1
+    filename = filename.format(counter)
+
+    Path("/Results").mkdir(parents=True, exist_ok=True)
+
+    with open(filename, 'w') as f:
+        for epoch, result_epoch in enumerate(lines):
+            f.write('\n Epoch: %s\n' % epoch)
+            f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
+                result_epoch[0][1], result_epoch[0][1], result_epoch[0][2]))
+            f.write('\n Path: %s' % str([item[1] for item in result_epoch[1]]))
+            f.write('\n %---')
+
+
 class AntColony():
 
     def __init__(self, alpha, beta, rho, Q, nb_ant, levels):
@@ -157,16 +176,6 @@ class AntColony():
                 self.graph[path[i]][path[i+1]]['tau'] = min(
                     self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
 
-    def save_results():
-        """ Saves the reusults in a .txt file"""
-        filename = 'Results.%d.dat' % time.time()
-        lines = ['Readme', 'How to write text files in Python']
-        Path("/Results").mkdir(parents=True, exist_ok=True)
-        with open('readme.txt', 'w') as f:
-            for line in lines:
-                f.write(line)
-                f.write('\n')
-
     def epoch(self):
         pathes = []
         performances = []
@@ -188,6 +197,8 @@ class AntColony():
             print('Time to execute: %.3f. \nPath: %s' %
                   (element[0][0], str([item[1] for item in element[1]])))
         self.update_tau(pathes, method='basic')
+
+        return l_results
         # print([(path,)])
 
 
@@ -221,6 +232,9 @@ ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels_exec)
 # ant_colony.plot_graph()
 
 epoch = 3
+to_write = []
 for k in range(epoch):
     print("\nEPOCH: %i" % k)
-    ant_colony.epoch()
+    to_write.append(ant_colony.epoch())
+
+save_results(to_write)
