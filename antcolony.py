@@ -1,37 +1,36 @@
 import os
 import subprocess
+from localsearch import GreedySearch
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 
 
+N1, N2, N3, NUM_ITER = "256", "256", "256", "16"
+
+
 def make(simd="avx2", Olevel="-O3"):
-    
     os.chdir("./iso3dfd-st7/")
     try:
-        
         subprocess.run(["make", "clean"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     except Exception as e:
-        
         print(e)
         pass
     subprocess.run(["make", "build", f"simd={simd}",f" Olevel={Olevel} "],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 
     os.chdir("..")
-    
 
 
-def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
+def run(num_thread, b1, b2, b3):
     filename = os.listdir("./iso3dfd-st7/bin/")[0]
-    print(filename)
-    print(n1, n2, num_thread, iteration, b1, b2, b3)
+    # print(filename)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{filename}",
-        str(n1),
-        str(n2),
-        str(n3),
+        N1,
+        N2,
+        N3,
         str(num_thread),
-        str(iteration),
+        NUM_ITER,
         str(b1),
         str(b2),
         str(b3)
@@ -47,7 +46,7 @@ def run(n1, n2, n3, num_thread, iteration, b1, b2, b3):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, local_search_method):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
@@ -56,6 +55,7 @@ class AntColony():
 
         self.levels = levels
         self.graph = self.__init_graph()
+        self.local_search_method = local_search_method
 
     def __init_graph(self):
         """ Initialize the graph """
@@ -82,12 +82,21 @@ class AntColony():
         plt.show()
 
     def pick_path(self):
-        """ Choose the path of an ant """
+        """
+        Choose the path of an ant
+
+        Return:
+        path : list = [(name_lvl1, choice_lvl1), ...]
+        """
+        # Start from initial node
         path = [("init", "init")]
         for _ in range(len(self.levels)-1):
             items_view = self.graph[path[-1]].items()
+            # List next nodes
             neighbors = [a for (a, _) in items_view]
             neighbors_idx = np.arange(len(neighbors))
+
+            # Choose a node
             tau = np.array([e["tau"]
                            for (_, e) in items_view], dtype=np.float32)
             nu = np.array([e["nu"] for (_, e) in items_view], dtype=np.float32)
@@ -158,51 +167,48 @@ class AntColony():
                     self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
 
     def epoch(self):
-        pathes = []
-        performances = []
-        for _ in range(self.nb_ant):
-            path = self.pick_path()
-            # print(path)
-            make(path[1][1], path[2][1])
-            performances.append(
-                run(n1=128, n2=128, n3=128, iteration=100, **dict(path[3:]))[0])
+        pathes = [self.pick_path() for _ in range(self.nb_ant)]
+        pathes, costs = self.local_search_method(self.levels, pathes)
 
-        pathes = [path for _, path in sorted(
-            zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(zip(costs, pathes), key=lambda pair: pair[0])]
 
         self.update_tau(pathes, method='basic')
         print(pathes)
 
 
-alpha = 0.5
-beta = 0
-rho = 0.2
-Q = 1
-nb_ant = 50
+
+if __name__ == "__main__":
+
+    alpha = 0.5
+    beta = 0
+    rho = 0.2
+    Q = 1
+    nb_ant = 5
 
 
-block_min = 1
-block_max = 256
-block_size = 64
+    block_min = 1
+    block_max = 256
+    block_size = 16
 
 
-levels = [("init", {"init"}),
-          ("simd", {"avx", "avx2", 'avx512', 'sse'}),
-          ("Olevel", {"-O2", "-O3", "-Ofast"}),
-          ("num_thread", set([2**j for j in range(0, 6)])),
-          ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-          ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-          ("b3", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+    levels = [("init", ["init"]),
+            ("simd", ["avx", "avx2", "avx512", "sse"]),
+            ("Olevel", ["-O2", "-O3", "-Ofast"]),
+            ("num_thread", list([2**j for j in range(0, 6)])),
+            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+            ]
 
-          ]
 
+    local_search_method = GreedySearch(kmax=5)
 
-# print(levels[3])
+    # print(levels[3])
 
-ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels)
-# ant_colony.plot_graph()
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
+    # ant_colony.plot_graph()
 
-epoch = 3
-for k in range(epoch):
-    print("EPOCH: %i" % k)
-    ant_colony.epoch()
+    epoch = 3
+    for k in range(epoch):
+        print("EPOCH: %i" % k)
+        ant_colony.epoch()
