@@ -171,7 +171,10 @@ class AntColony():
         pathes = [path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
         l_results.sort(key=lambda x: x[0][0])
-        print(l_results)
+        # print(l_results)
+        for element in l_results:
+            print('Time to execute: %f. \nPath: %s' %
+                  (element[0][0], str([item[1] for item in element[1]])))
         self.update_tau(pathes, method='basic')
         # print([(path,)])
 
