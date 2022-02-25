@@ -51,9 +51,11 @@ def save_results(lines):
     counter = 0
     filename = "Results{}.txt"
     Path("./Results").mkdir(parents=True, exist_ok=True)
+    print(str('./Results/' + filename))
     while os.path.isfile(str('./Results/' + filename).format(counter)):
         counter += 1
     filename = filename.format(counter)
+    print(filename)
 
     with open(filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
