@@ -189,7 +189,8 @@ block_size = 64
 levels_exec = [("init", {"init"}),
                ("simd", {"avx", "avx2", 'avx512', 'sse'}),
                ("Olevel", {"-O2", "-O3", "-Ofast"}),
-               ("num_thread", set([2**j for j in range(0, 6)])),
+               ("num_thread", set(32)),
+               #    ("num_thread", set([2**j for j in range(0, 6)])),
                ("b1", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
                ("b2", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
                ("b3", set(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
