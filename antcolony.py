@@ -56,7 +56,7 @@ def save_results(lines):
 
     Path("./Results").mkdir(parents=True, exist_ok=True)
 
-    with open("./Results/" + filename, 'w') as f:
+    with open(filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
             f.write('\n Epoch: %s\n' % epoch)
             for ant in result_epoch:
