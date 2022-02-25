@@ -173,7 +173,7 @@ class AntColony():
         l_results.sort(key=lambda x: x[0][0])
         # print(l_results)
         for element in l_results:
-            print('Time to execute: %f. \nPath: %s' %
+            print('Time to execute: %.3f. \nPath: %s' %
                   (element[0][0], str([item[1] for item in element[1]])))
         self.update_tau(pathes, method='basic')
         # print([(path,)])
@@ -183,7 +183,7 @@ alpha = 0.5
 beta = 0
 rho = 0.2
 Q = 1
-nb_ant = 5
+nb_ant = 10
 
 
 block_min = 1
@@ -210,5 +210,5 @@ ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels_exec)
 
 epoch = 3
 for k in range(epoch):
-    print("EPOCH: %i" % k)
+    print("\nEPOCH: %i" % k)
     ant_colony.epoch()
