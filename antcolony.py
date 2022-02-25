@@ -47,15 +47,16 @@ def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
 
 def save_results(lines):
     """ Saves the reusults in a .txt file"""
+    print(lines)
     counter = 0
     filename = "Results{}.txt"
     while os.path.isfile(filename.format(counter)):
         counter += 1
     filename = filename.format(counter)
 
-    Path("/Results").mkdir(parents=True, exist_ok=True)
+    Path("./Results").mkdir(parents=True, exist_ok=True)
 
-    with open(filename, 'w') as f:
+    with open("./Results/" + filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
             f.write('\n Epoch: %s\n' % epoch)
             f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
