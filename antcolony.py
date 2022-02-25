@@ -47,7 +47,7 @@ def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
 
 def save_results(lines):
     """ Saves the reusults in a .txt file"""
-    print(lines)
+    # print(lines)
     counter = 0
     filename = "Results{}.txt"
     while os.path.isfile(filename.format(counter)):
@@ -58,11 +58,17 @@ def save_results(lines):
 
     with open("./Results/" + filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
+            print(result_epoch)
             f.write('\n Epoch: %s\n' % epoch)
             f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                result_epoch[0][1], result_epoch[0][1], result_epoch[0][2]))
+                result_epoch[0][0], result_epoch[0][1], result_epoch[0][2]))
             f.write('\n Path: %s' % str([item[1] for item in result_epoch[1]]))
             f.write('\n %---')
+
+            ((0.09, 151.79, 9.26), [('init', 'init'), ('simd', 'avx512'), (
+                'Olevel', '-O2'), ('num_thread', 32), ('b1', 64), ('b2', 64), ('b3', 64)])
+            ((0.15, 91.14, 5.56), [('init', 'init'), ('simd', 'avx2'), (
+                'Olevel', '-O3'), ('num_thread', 32), ('b1', 64), ('b2', 128), ('b3', 64)])
 
 
 class AntColony():
