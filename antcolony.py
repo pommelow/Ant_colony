@@ -49,7 +49,7 @@ def save_results(lines):
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
-    filename = "Results{}.txt"
+    filename = "./Results/Results{}.txt"
     while os.path.isfile(filename.format(counter)):
         counter += 1
     filename = filename.format(counter)
