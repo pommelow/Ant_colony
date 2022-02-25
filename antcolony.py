@@ -162,23 +162,23 @@ class AntColony():
             path = self.pick_path()
             # print(path)
             # make(path[1][1], path[2][1])
+            results = run(path[1][1], path[2][1], n1=128, n2=128,
+                          n3=128, iteration=10, **dict(path[3:]))
+            performances.append(results)
 
-            performances.append(
-                run(path[1][1], path[2][1], n1=128, n2=128,
-                    n3=128, iteration=100, **dict(path[3:]))[0])
-
+        print(path)
         pathes = [path for _, path in sorted(
-            zip(performances, pathes), key=lambda pair: pair[0])]
+            zip(performances[0], pathes), key=lambda pair: pair[0])]
 
         self.update_tau(pathes, method='basic')
-        # print(pathes)
+        # print([(path,)])
 
 
 alpha = 0.5
 beta = 0
 rho = 0.2
 Q = 1
-nb_ant = 50
+nb_ant = 5
 
 
 block_min = 1
