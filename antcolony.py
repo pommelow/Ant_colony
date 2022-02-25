@@ -4,6 +4,8 @@ import subprocess
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import time
+from pathlib import Path
 
 
 def make(simd="avx2", Olevel="-O3"):
@@ -131,8 +133,8 @@ class AntColony():
                     1-self.rho)*self.graph[origin][destiny]['tau']
 
             extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
-            for i in range(len(pathes[0]-1)):  # Reward best ant
-                self.graph[path[i]][path[i+1]]['tau'] += extra_phero * \
+            for i in range(len(pathes[0])-1):  # Reward best ant
+                self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] += extra_phero * \
                     self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
 
             # Adding pheromone
@@ -154,6 +156,16 @@ class AntColony():
                 increment = self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
                 self.graph[path[i]][path[i+1]]['tau'] = min(
                     self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
+
+    def save_results():
+        """ Saves the reusults in a .txt file"""
+        filename = 'Results.%d.dat' % time.time()
+        lines = ['Readme', 'How to write text files in Python']
+        Path("/Results").mkdir(parents=True, exist_ok=True)
+        with open('readme.txt', 'w') as f:
+            for line in lines:
+                f.write(line)
+                f.write('\n')
 
     def epoch(self):
         pathes = []
