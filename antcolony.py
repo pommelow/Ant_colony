@@ -58,17 +58,13 @@ def save_results(lines):
 
     with open("./Results/" + filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
-            print(result_epoch)
-            f.write('\n Epoch: %s\n' % epoch)
-            f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                result_epoch[0][0], result_epoch[0][1], result_epoch[0][2]))
-            f.write('\n Path: %s' % str([item[1] for item in result_epoch[1]]))
-            f.write('\n %---')
-
-            ((0.09, 151.79, 9.26), [('init', 'init'), ('simd', 'avx512'), (
-                'Olevel', '-O2'), ('num_thread', 32), ('b1', 64), ('b2', 64), ('b3', 64)])
-            ((0.15, 91.14, 5.56), [('init', 'init'), ('simd', 'avx2'), (
-                'Olevel', '-O3'), ('num_thread', 32), ('b1', 64), ('b2', 128), ('b3', 64)])
+            for ant in result_epoch:
+                f.write('\n Epoch: %s\n' % epoch)
+                f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
+                    ant[0][0], ant[0][1], ant[0][2]))
+                f.write('\n Path: %s' % str([item[1]
+                        for item in ant[1]]))
+                f.write('\n %---')
 
 
 class AntColony():
