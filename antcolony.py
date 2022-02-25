@@ -58,8 +58,8 @@ def save_results(lines):
 
     with open("./Results/" + filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
+            f.write('\n Epoch: %s\n' % epoch)
             for ant in result_epoch:
-                f.write('\n Epoch: %s\n' % epoch)
                 f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
                     ant[0][0], ant[0][1], ant[0][2]))
                 f.write('\n Path: %s' % str([item[1]
