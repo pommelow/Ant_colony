@@ -158,18 +158,20 @@ class AntColony():
     def epoch(self):
         pathes = []
         performances = []
+        l_results = []
         for _ in range(self.nb_ant):
             path = self.pick_path()
             # print(path)
             # make(path[1][1], path[2][1])
             results = run(path[1][1], path[2][1], n1=128, n2=128,
                           n3=128, iteration=10, **dict(path[3:]))
-            performances.append(results)
+            performances.append(results[0])
+            l_results.append((results, path))
 
-        print(path)
         pathes = [path for _, path in sorted(
-            zip(performances[0], pathes), key=lambda pair: pair[0])]
-
+            zip(performances, pathes), key=lambda pair: pair[0])]
+        l_results.sort(key=lambda x: x[0][0])
+        print(l_results)
         self.update_tau(pathes, method='basic')
         # print([(path,)])
 
