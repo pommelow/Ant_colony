@@ -54,7 +54,7 @@ def save_results(lines):
     print('./Results/' + filename.format(counter))
     while os.path.isfile('./Results/' + filename.format(counter)):
         counter += 1
-    filename = filename.format(counter)
+    filename = './Results/' + filename.format(counter)
     print(filename)
 
     with open(filename, 'w') as f:
