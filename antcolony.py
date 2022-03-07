@@ -8,11 +8,11 @@ import numpy as np
 import time
 from pathlib import Path
 
-from config import N1, N2, N3, NUM_ITER,method
+from config import N1, N2, N3, NUM_ITER
 
 
 from mpl_toolkits.mplot3d import Axes3D
-from tqdm import tqdm  # Loading bar
+#from tqdm import tqdm  # Loading bar
 
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
@@ -77,12 +77,13 @@ def save_results(lines):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, local_search_method):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels,method, local_search_method):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
         self.Q = Q
         self.nb_ant = nb_ant
+        self.method=method
 
         self.levels = levels
         self.graph = self.__init_graph()
@@ -136,8 +137,9 @@ class AntColony():
             path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
         return path
 
-    def update_tau(self, pathes, method='basic'):
+    def update_tau(self, pathes):
         """ Updates the amount of pheromone on each edge based on the method choosen """
+        method=self.method
         # Basic Algorithm
         if method == 'basic':
             # Evaporation:
@@ -219,7 +221,7 @@ class AntColony():
         print(f"Best path: {[e[1] for e in pathes[0]]}\nTime to execute: {performances[0]}")
 
         # Update pheromones
-        self.update_tau(pathes, method)
+        self.update_tau(pathes)
 
         return pathes, performances
 
@@ -243,6 +245,7 @@ if __name__ == "__main__":
     rho = 0.2
     Q = 1
     nb_ant = 2
+    method='elitist'
 
     block_min = 1
     block_max = 32
@@ -266,7 +269,7 @@ if __name__ == "__main__":
 
     # print(levels[3])
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels,method, local_search_method)
 
     pbar = tqdm(total=epoch, desc="Epoch")  # Loading bar
 

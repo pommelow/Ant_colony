@@ -1,10 +1,14 @@
+import enum
 from antcolony import *
+from localsearch import Identity
+from itertools import product
 
 alpha=0.5
 beta=0
 rho=0.2
 Q=1
 nb_ant=10
+method="elitist"
 
 block_min = 1
 block_max = 256
@@ -19,54 +23,62 @@ levels = [("init", ["init"]),
             ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
             ]
 
-local_search_method = GreedySearch(kmax=1)
-
-
-
-
 alpha_l=np.arange(5,55,5)/10
+beta_l=[0]
 rho_l=np.arange(0,10)/10
-nb_ant=np.arange(5,55,5)
+Q_l=[1]
+nb_ant_l=np.arange(5,55,5)
 methods=["basic","asrank","elitist","mmas"]
 
-res=[]
-res_path=[]
+def create_l(list_of_param=[alpha_l,beta_l,rho_l,Q_l,nb_ant_l,methods]):
+    products = itertools.product(*list_of_param)
+    return list(products)
 
-for alpha in alpha_l :
+def hypertune(parameter_l):
+    res=[]
+    res_path=[]
 
-    epoch_max=10
-    epoch=0
-    ant_colony=AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
+    for parameter in parameter_l :
+        alpha, beta, rho, Q, nb_ant,method=parameter
+        print(f"Hyperparameters : alpha={alpha}, beta={beta}, rho={rho}, Q={Q}, nb_ant={nb_ant}, method={method}\n")
 
-    best_time=1000000
-    current_time=np.inf
-    best_path=[]
-    current_path=[]
+        epoch_max=10
+        epoch=0
+        #local_search_method = GreedySearch(kmax=1)
+        local_search_method = Identity()
+        ant_colony=AntColony(alpha, beta, rho, Q, nb_ant, levels, method,local_search_method)
 
-    while (abs(best_time-current_time)>0.1) and (epoch<=epoch_max):
+        best_time=1000000
+        current_time=np.inf
+        best_path=[]
+        current_path=[]
 
-        if best_time>current_time:
-            best_time=current_time
-            best_path=current_path
+        while (abs(best_time-current_time)>0.1) and (epoch<=epoch_max):
 
-        epoch+=1
-        pathes,performances=ant_colony.epoch()
+            if best_time>current_time:
+                best_time=current_time
+                best_path=current_path
 
-        current_time=performances[0]
-        current_path=[e[1] for e in pathes[0]]
-    
-    res.append(best_time)
-    res_path.append(best_path)
+            epoch+=1
+            pathes,performances=ant_colony.epoch()
 
-    
+            current_time=performances[0]
+            current_path=[e[1] for e in pathes[0]]
+        
+        res.append(best_time)
+        res_path.append(best_path)
+
+    fig, ax = plt.subplots()
+    ax.scatter(np.arange(len(res)),res)
+    ax.set_ylabel("time")
+    for i,text in enumerate(res_path):
+        plt.annotate(res_path,(parameter_l[i],res[i]))
+    plt.savefig("hypertune.png")
+    return res,res_path
 
 
 
 
 
-
-plt.plot(alpha_l,res)
-plt.xlabel("alpha")
-plt.ylabel("time")
-plt.show()
-
+list_of_param=[[alpha],beta_l,[rho],[Q],[nb_ant],[method]]
+hypertune(create_l(list_of_param))
