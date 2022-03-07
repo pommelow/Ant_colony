@@ -8,7 +8,7 @@ import numpy as np
 import time
 from pathlib import Path
 
-from config import N1, N2, N3, NUM_ITER
+from config import N1, N2, N3, NUM_ITER,method
 
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -175,7 +175,7 @@ class AntColony():
             extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
             for i in range(len(pathes[0])-1):  # Reward best ant
                 self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] += extra_phero * \
-                    self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
+                    self.Q/(1/self.graph[pathes[0][i]][pathes[0][i+1]]['nu'])
 
             # Adding pheromone
             for path in pathes:
@@ -192,10 +192,10 @@ class AntColony():
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
                 self.graph[origin][destiny]['tau'] = max(update, tau_min)
 
-            for i in range(len(pathes[0]-1)):  # Only best at adds pheromone
-                increment = self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
-                self.graph[path[i]][path[i+1]]['tau'] = min(
-                    self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
+            for i in range(len(pathes[0])-1):  # Only best at adds pheromone
+                increment = self.Q/(1/self.graph[pathes[0][i]][pathes[0][i+1]]['nu'])
+                self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] = min(
+                    self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] + increment, tau_max)
 
     def epoch(self):
         # pathes and perfornamces of all ants of that generation
@@ -219,7 +219,7 @@ class AntColony():
         print(f"Best path: {[e[1] for e in pathes[0]]}\nTime to execute: {performances[0]}")
 
         # Update pheromones
-        self.update_tau(pathes, method='basic')
+        self.update_tau(pathes, method)
 
         return pathes, performances
 
