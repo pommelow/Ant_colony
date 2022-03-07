@@ -8,8 +8,8 @@ import numpy as np
 import time
 from pathlib import Path
 
+from config import N1, N2, N3, NUM_ITER
 
-N1, N2, N3, NUM_ITER = "256", "256", "256", "16"
 
 
 def make(simd="avx2", Olevel="-O3"):
@@ -24,7 +24,7 @@ def make(simd="avx2", Olevel="-O3"):
     os.chdir("..")
 
 
-def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
+def run(simd, Olevel, num_thread, b1, b2, b3):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
     # filename = os.listdir("./iso3dfd-st7/bin/")[0]
@@ -32,9 +32,9 @@ def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
     # print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{exec_name}",
-        str(n1),
-        str(n2),
-        str(n3),
+        N1,
+        N2,
+        N3,
         str(num_thread),
         NUM_ITER,
         str(b1),
@@ -125,7 +125,7 @@ class AntColony():
             neighbors = [a for (a, _) in items_view]
             neighbors_idx = np.arange(len(neighbors))
 
-            # Choose a node
+            # Choose a node according to weights
             tau = np.array([e["tau"]
                            for (_, e) in items_view], dtype=np.float32)
             nu = np.array([e["nu"] for (_, e) in items_view], dtype=np.float32)
@@ -196,30 +196,30 @@ class AntColony():
                     self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
 
     def epoch(self):
+        # pathes and perfornamces of all ants of that generation
         pathes = []
         performances = []
-        l_results = []
-        for _ in range(self.nb_ant):
-            path = self.pick_path()
-            path = self.local_search_method.search_fn(self.levels, path)
-            # print(path)
-            # make(path[1][1], path[2][1])
-            results = run(path[1][1], path[2][1], n1=128, n2=128,
-                          n3=128, iteration=10, **dict(path[3:]))
-            performances.append(results[0])
-            l_results.append((results, path))
 
-        pathes = [path for _, path in sorted(
-            zip(performances, pathes), key=lambda pair: pair[0])]
-        l_results.sort(key=lambda x: x[0][0])
-        # print(l_results)
-        for element in l_results:
-            print('Time to execute: %.3f. \nPath: %s' %
-                  (element[0][0], str([item[1] for item in element[1]])))
+        # Routine for each ant
+        for _ in range(self.nb_ant):
+            # 1- Pick a path
+            path = self.pick_path()
+            # 2- Do a local search
+            path, cost = self.local_search_method.search_fn(self.levels, path)
+
+            pathes.append(path)
+            performances.append(cost)
+
+        # Sort pathes
+        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        performances.sort()
+
+        print(f"Best path: {[e[1] for e in pathes[0]]}\nTime to execute: {performances[0]}")
+
+        # Update pheromones
         self.update_tau(pathes, method='basic')
 
-        return l_results
-        # print([(path,)])
+        return pathes, performances
 
 
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     beta = 0
     rho = 0.2
     Q = 1
-    nb_ant = 5
+    nb_ant = 1
 
 
     block_min = 1
@@ -247,7 +247,7 @@ if __name__ == "__main__":
             ]
 
 
-    local_search_method = GreedySearch(kmax=5)
+    local_search_method = GreedySearch(kmax=1)
 
     # print(levels[3])
 

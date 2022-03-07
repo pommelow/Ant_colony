@@ -4,15 +4,16 @@ import numpy as np
 import random
 from abc import ABC, abstractclassmethod
 
+from config import N1, N2, N3, NUM_ITER
 
-N1, N2, N3, NUM_ITER = "256", "256", "256", "16"
 
 
-def run(num_thread, b1, b2, b3):
-    filename = os.listdir("./iso3dfd-st7/bin/")[0]
-    # print(filename)
+def run(simd, Olevel, num_thread, b1, b2, b3):
+    basename = 'iso3dfd_dev13_cpu'
+    exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
+
     p = subprocess.Popen([
-        f"./iso3dfd-st7/bin/{filename}",
+        f"./iso3dfd-st7/bin/{exec_name}",
         N1,
         N2,
         N3,
@@ -32,7 +33,7 @@ def run(num_thread, b1, b2, b3):
 
 
 def cost_fn(path):
-    return run(**dict(path[-4:]))[0]
+    return run(**dict(path[1:]))[0]
 
 
 def neighborhood(levels, path, shuffle=True):
