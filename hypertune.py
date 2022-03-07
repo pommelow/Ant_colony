@@ -1,10 +1,7 @@
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-import pickle
-from time import time
-from antcolony_mpi import AntColony, IndependentColonies
-from localsearch import Identity, GreedySearch, SimulatedAnnealing
+import enum
+from antcolony import *
+from localsearch import Identity
+from itertools import product
 
 import argparse
 
@@ -18,7 +15,8 @@ alpha=1
 beta=1
 rho=0.1
 Q=1
-nb_ant=25
+nb_ant=10
+method="elitist"
 
 block_min = 16
 block_max = 256
@@ -35,50 +33,62 @@ levels = [("init", ["init"]),
             ("b3", list(range(block_min, block_max+1, 1)))
             ]
 
-method = "mmas"
-mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
-local_search_method = Identity()
+alpha_l=np.arange(5,55,5)/10
+beta_l=[0]
+rho_l=np.arange(0,10)/10
+Q_l=[1]
+nb_ant_l=np.arange(5,55,5)
+methods=["basic","asrank","elitist","mmas"]
 
-communication = IndependentColonies()
+def create_l(list_of_param=[alpha_l,beta_l,rho_l,Q_l,nb_ant_l,methods]):
+    products = itertools.product(*list_of_param)
+    return list(products)
+
+def hypertune(parameter_l):
+    res=[]
+    res_path=[]
+
+    for parameter in parameter_l :
+        alpha, beta, rho, Q, nb_ant,method=parameter
+        print(f"Hyperparameters : alpha={alpha}, beta={beta}, rho={rho}, Q={Q}, nb_ant={nb_ant}, method={method}\n")
+
+        epoch_max=10
+        epoch=0
+        #local_search_method = GreedySearch(kmax=1)
+        local_search_method = Identity()
+        ant_colony=AntColony(alpha, beta, rho, Q, nb_ant, levels, method,local_search_method)
+
+        best_time=1000000
+        current_time=np.inf
+        best_path=[]
+        current_path=[]
+
+        while (abs(best_time-current_time)>0.1) and (epoch<=epoch_max):
+
+            if best_time>current_time:
+                best_time=current_time
+                best_path=current_path
+
+            epoch+=1
+            pathes,performances=ant_colony.epoch()
+
+            current_time=performances[0]
+            current_path=[e[1] for e in pathes[0]]
+        
+        res.append(best_time)
+        res_path.append(best_path)
+
+    fig, ax = plt.subplots()
+    ax.scatter(np.arange(len(res)),res)
+    ax.set_ylabel("time")
+    for i,text in enumerate(res_path):
+        plt.annotate(res_path,(parameter_l[i],res[i]))
+    plt.savefig("hypertune.png")
+    return res,res_path
 
 
-max_time = 1800
 
 
-for _ in range(1):
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **mmas_args)
-
-    best_cost = np.inf
-    best_path = []
-    history = {"best_cost": [], "time": []}
-
-    top = time()
-
-    communication.initial_communication()
-    while time()-top < max_time:
-        if time()-top > 600:
-            ant_colony.local_search_method = SimulatedAnnealing(kmax=args.kmax, t0=args.t0)
-        communication.on_epoch_begin()
-        pathes, performances = ant_colony.epoch()
-        pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
-
-        if performances[0] < best_cost:
-            best_path = pathes[0]
-            best_cost = performances[0]
-            history["best_cost"].append(best_cost)
-            history["time"].append(time() - top)
-
-        print(f"Time: {time() - top:.1f}s\nBest cost: {best_cost}\nBest path:{best_path}")
-    
-    best_path, best_cost = communication.last_communication(best_path, best_cost)
-    history["best_cost"].append(best_cost)
-    history["time"].append(time() - top)
-
-    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity_simAnn{args.kmax}_{args.t0}"
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
-
-    n = len(os.listdir(folder_name))
-    with open(folder_name + f"/{n:>03}", "wb") as file:
-        pickle.dump(history, file)
+list_of_param=[[alpha],beta_l,[rho],[Q],[nb_ant],[method]]
+hypertune(create_l(list_of_param))
