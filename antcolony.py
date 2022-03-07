@@ -11,6 +11,8 @@ from pathlib import Path
 from config import N1, N2, N3, NUM_ITER,method
 
 
+from mpl_toolkits.mplot3d import Axes3D
+from tqdm import tqdm  # Loading bar
 
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
@@ -223,19 +225,32 @@ class AntColony():
 
 
 
-if __name__ == "__main__":
+def getBlockSizes(pathes):
+    b1 = []
+    b2 = []
+    b3 = []
+    for path in pathes:
+        path = dict(path)
+        b1.append(path['b1'])
+        b2.append(path['b2'])
+        b3.append(path['b3'])
 
+    return b1, b2, b3
+
+if __name__ == "__main__":
     alpha = 0.5
     beta = 0
     rho = 0.2
     Q = 1
-    nb_ant = 1
-
+    nb_ant = 2
 
     block_min = 1
-    block_max = 256
+    block_max = 32
     block_size = 16
 
+    epoch = 2
+    cost = []
+    pathes = []
 
     levels = [("init", ["init"]),
             ("simd", ["avx", "avx2", "avx512", "sse"]),
@@ -252,9 +267,27 @@ if __name__ == "__main__":
     # print(levels[3])
 
     ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
-    # ant_colony.plot_graph()
 
-    epoch = 3
+    pbar = tqdm(total=epoch, desc="Epoch")  # Loading bar
+
     for k in range(epoch):
-        print("EPOCH: %i" % k)
-        ant_colony.epoch()
+        path, performances = ant_colony.epoch()
+        cost.append(performances[0])
+        pathes.append(path[0])
+        pbar.update(1)
+
+    pbar.close() 
+    b1, b2, b3 = getBlockSizes(pathes)
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1, projection='3d')
+    ax.scatter(b1, b2, b3, c=cost)
+    plt.savefig("3Dresult.png")
+
+    fig = plt.figure()
+    plt.title("Ant Colony - Solutions over the epochs")
+    plt.xlabel("Epoch")
+    plt.ylabel("Elapsed time")
+    plt.plot(np.arange(epoch), cost)
+    plt.savefig("result.png")
+
+    

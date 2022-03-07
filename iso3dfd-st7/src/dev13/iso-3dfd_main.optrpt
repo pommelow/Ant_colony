@@ -76,10 +76,13 @@ LOOP BEGIN at iso-3dfd_main.cc(99,17)
             LOOP END
 
             LOOP BEGIN at iso-3dfd_main.cc(115,57)
+<<<<<<< Updated upstream
             <Alternate Alignment Vectorized Loop>
             LOOP END
 
             LOOP BEGIN at iso-3dfd_main.cc(115,57)
+=======
+>>>>>>> Stashed changes
             <Remainder loop for vectorization>
                remark #15301: REMAINDER LOOP WAS VECTORIZED
             LOOP END
