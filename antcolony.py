@@ -1,9 +1,12 @@
+import itertools
 import os
 import subprocess
 from localsearch import GreedySearch
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import time
+from pathlib import Path
 
 
 N1, N2, N3, NUM_ITER = "256", "256", "256", "16"
@@ -21,14 +24,17 @@ def make(simd="avx2", Olevel="-O3"):
     os.chdir("..")
 
 
-def run(num_thread, b1, b2, b3):
-    filename = os.listdir("./iso3dfd-st7/bin/")[0]
+def run(simd, Olevel, n1, n2, n3, num_thread, iteration, b1, b2, b3):
+    basename = 'iso3dfd_dev13_cpu'
+    exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
+    # filename = os.listdir("./iso3dfd-st7/bin/")[0]
     # print(filename)
+    # print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
-        f"./iso3dfd-st7/bin/{filename}",
-        N1,
-        N2,
-        N3,
+        f"./iso3dfd-st7/bin/{exec_name}",
+        str(n1),
+        str(n2),
+        str(n3),
         str(num_thread),
         NUM_ITER,
         str(b1),
@@ -42,6 +48,29 @@ def run(num_thread, b1, b2, b3):
     throughput = float(outputs[-3].split(" ")[-2])
     flops = float(outputs[-2].split(" ")[-2])
     return time, throughput, flops
+
+
+def save_results(lines):
+    """ Saves the reusults in a .txt file"""
+    # print(lines)
+    counter = 0
+    filename = "Results{}.txt"
+    Path("./Results").mkdir(parents=True, exist_ok=True)
+    print('./Results/' + filename.format(counter))
+    while os.path.isfile('./Results/' + filename.format(counter)):
+        counter += 1
+    filename = './Results/' + filename.format(counter)
+    print(filename)
+
+    with open(filename, 'w') as f:
+        for epoch, result_epoch in enumerate(lines):
+            f.write('\n Epoch: %s\n' % epoch)
+            for ant in result_epoch:
+                f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
+                    ant[0][0], ant[0][1], ant[0][2]))
+                f.write('\n Path: %s' % str([item[1]
+                        for item in ant[1]]))
+                f.write('\n %---')
 
 
 class AntColony():
@@ -70,7 +99,7 @@ class AntColony():
                 for choice_j in choices_j:
                     graph.add_edge((name_i, choice_i),
                                    (name_j, choice_j), tau=1, nu=1)
-        print(graph)
+        # print(graph)
         return graph
 
     def plot_graph(self):
@@ -142,8 +171,8 @@ class AntColony():
                     1-self.rho)*self.graph[origin][destiny]['tau']
 
             extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
-            for i in range(len(pathes[0]-1)):  # Reward best ant
-                self.graph[path[i]][path[i+1]]['tau'] += extra_phero * \
+            for i in range(len(pathes[0])-1):  # Reward best ant
+                self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] += extra_phero * \
                     self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
 
             # Adding pheromone
@@ -167,13 +196,30 @@ class AntColony():
                     self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
 
     def epoch(self):
-        pathes = [self.pick_path() for _ in range(self.nb_ant)]
-        pathes, costs = self.local_search_method(self.levels, pathes)
+        pathes = []
+        performances = []
+        l_results = []
+        for _ in range(self.nb_ant):
+            path = self.pick_path()
+            path = self.local_search_method.search_fn(self.levels, path)
+            # print(path)
+            # make(path[1][1], path[2][1])
+            results = run(path[1][1], path[2][1], n1=128, n2=128,
+                          n3=128, iteration=10, **dict(path[3:]))
+            performances.append(results[0])
+            l_results.append((results, path))
 
-        pathes = [path for _, path in sorted(zip(costs, pathes), key=lambda pair: pair[0])]
-
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
+        l_results.sort(key=lambda x: x[0][0])
+        # print(l_results)
+        for element in l_results:
+            print('Time to execute: %.3f. \nPath: %s' %
+                  (element[0][0], str([item[1] for item in element[1]])))
         self.update_tau(pathes, method='basic')
-        print(pathes)
+
+        return l_results
+        # print([(path,)])
 
 
 

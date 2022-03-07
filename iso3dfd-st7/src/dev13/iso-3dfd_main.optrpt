@@ -9,7 +9,15 @@ Begin optimization report for: main(int, char **)
 
 
 LOOP BEGIN at iso-3dfd_main.cc(226,2)
+<Peeled loop for vectorization>
+LOOP END
+
+LOOP BEGIN at iso-3dfd_main.cc(226,2)
    remark #15300: LOOP WAS VECTORIZED
+LOOP END
+
+LOOP BEGIN at iso-3dfd_main.cc(226,2)
+<Remainder loop for vectorization>
 LOOP END
 ===========================================================================
 
@@ -47,41 +55,41 @@ LOOP BEGIN at iso-3dfd_main.cc(128,9)
    LOOP END
 LOOP END
 
-LOOP BEGIN at iso-3dfd_main.cc(100,17)
+LOOP BEGIN at iso-3dfd_main.cc(99,17)
    remark #15542: loop was not vectorized: inner loop was already vectorized
 
-   LOOP BEGIN at iso-3dfd_main.cc(108,41)
+   LOOP BEGIN at iso-3dfd_main.cc(100,17)
       remark #15542: loop was not vectorized: inner loop was already vectorized
 
-      LOOP BEGIN at iso-3dfd_main.cc(109,49)
+      LOOP BEGIN at iso-3dfd_main.cc(108,41)
          remark #15542: loop was not vectorized: inner loop was already vectorized
 
-         LOOP BEGIN at iso-3dfd_main.cc(115,57)
-         <Peeled loop for vectorization>
-         LOOP END
+         LOOP BEGIN at iso-3dfd_main.cc(109,49)
+            remark #15542: loop was not vectorized: inner loop was already vectorized
 
-         LOOP BEGIN at iso-3dfd_main.cc(115,57)
-            remark #15300: LOOP WAS VECTORIZED
-         LOOP END
+            LOOP BEGIN at iso-3dfd_main.cc(115,57)
+            <Peeled loop for vectorization>
+            LOOP END
 
-         LOOP BEGIN at iso-3dfd_main.cc(115,57)
-         <Remainder loop for vectorization>
-            remark #15301: REMAINDER LOOP WAS VECTORIZED
-         LOOP END
+            LOOP BEGIN at iso-3dfd_main.cc(115,57)
+               remark #15300: LOOP WAS VECTORIZED
+            LOOP END
 
-         LOOP BEGIN at iso-3dfd_main.cc(115,57)
-         <Remainder loop for vectorization>
+            LOOP BEGIN at iso-3dfd_main.cc(115,57)
+            <Alternate Alignment Vectorized Loop>
+            LOOP END
+
+            LOOP BEGIN at iso-3dfd_main.cc(115,57)
+            <Remainder loop for vectorization>
+               remark #15301: REMAINDER LOOP WAS VECTORIZED
+            LOOP END
+
+            LOOP BEGIN at iso-3dfd_main.cc(115,57)
+            <Remainder loop for vectorization>
+            LOOP END
          LOOP END
       LOOP END
    LOOP END
-LOOP END
-
-
-Non-optimizable loops:
-
-
-LOOP BEGIN at iso-3dfd_main.cc(100,17)
-   remark #15543: loop was not vectorized: loop with function call not considered an optimization candidate.
 LOOP END
 ===========================================================================
 
@@ -91,10 +99,12 @@ Begin optimization report for: initialize(float *, float *, float *, Parameters 
 
 
 LOOP BEGIN at iso-3dfd_main.cc(63,9)
-   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+   remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+   remark #15346: vector dependence: assumed OUTPUT dependence between ptr_prev[p->n1*(i*p->n2+j)+k] (66:33) and ptr_vel[p->n1*(i*p->n2+j)+k] (68:33)
 
    LOOP BEGIN at iso-3dfd_main.cc(64,17)
-      remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+      remark #15346: vector dependence: assumed OUTPUT dependence between ptr_prev[p->n1*(i*p->n2+j)+k] (66:33) and ptr_vel[p->n1*(i*p->n2+j)+k] (68:33)
 
       LOOP BEGIN at iso-3dfd_main.cc(65,25)
          remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
