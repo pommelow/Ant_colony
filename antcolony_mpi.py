@@ -7,20 +7,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from pathlib import Path
+import make_all
 
 from config import N1, N2, N3, NUM_ITER
 
 import mpi4py
 from mpi4py import MPI
 
+
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
     try:
-        subprocess.run(["make", "clean"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        subprocess.run(["make", "clean"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception as e:
         print(e)
         pass
-    subprocess.run(["make", "build", f"simd={simd}",f" Olevel={Olevel} "],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     os.chdir("..")
 
@@ -230,11 +234,12 @@ class IndependentColonies(Communication):
         pass
 
     def on_epoch_end(self, ant_colony, pathes, performances):
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         ant_colony.update_tau(pathes, method='basic')
         return pathes, performances
-    
+
     def last_communication(self, best_path, best_cost):
         print(f"Best cost of colony {self.Me}: {best_cost}")
         self.comm.Barrier()
@@ -259,12 +264,13 @@ class ExchangeAll(Communication):
         pathes = self.comm.allreduce(pathes)
         performances = self.comm.allreduce(performances)
         # Sort all results
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         # Update pheromones
         ant_colony.update_tau(pathes, method='basic')
         return pathes, performances
-    
+
     def last_communication(self, best_path, best_cost):
         for i in range(self.NbP):
             cost = self.comm.bcast(best_cost, root=i)
@@ -276,7 +282,11 @@ class ExchangeAll(Communication):
 
 
 if __name__ == "__main__":
-    #Parameters
+
+    # Compile at each machine:
+    subprocess.call(["python", "make_all.py"])
+
+    # Parameters
     alpha = 0.5
     beta = 0
     rho = 0.2
@@ -289,38 +299,39 @@ if __name__ == "__main__":
     block_size = 16
 
     levels = [("init", ["init"]),
-            ("simd", ["avx", "avx2", "avx512", "sse"]),
-            ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
-            ]
+              ("simd", ["avx", "avx2", "avx512", "sse"]),
+              ("Olevel", ["-O2", "-O3", "-Ofast"]),
+              ("num_thread", list([2**j for j in range(0, 6)])),
+              ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+              ]
 
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
-
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant,
+                           levels, local_search_method)
 
     best_path = None
     best_cost = np.inf
 
     communication.initial_communication()
-    
+
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         communication.comm.Barrier()
-        pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
-        
+        pathes, performances = communication.on_epoch_end(
+            ant_colony, pathes, performances)
+
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
-    
-    best_path, best_cost = communication.last_communication(best_path, best_cost)
+
+    best_path, best_cost = communication.last_communication(
+        best_path, best_cost)
 
     if communication.Me == 0:
         print("Best path: ", best_path)
         print("Best cost: ", best_cost)
-
