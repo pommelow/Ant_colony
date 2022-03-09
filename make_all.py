@@ -13,13 +13,15 @@ def make(simd="avx2", Olevel="-O3"):
 
     os.chdir("./iso3dfd-st7/")
     try:
-        subprocess.run(["make", "clean"],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        os.system(f"make clean")
+        # subprocess.run(["make", "clean"],
+        #                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception as e:
         print(e)
         pass
-    subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
+    #                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    os.system(f"make build simd={simd} Olevel={Olevel}")
 
     os.chdir("..")
 
