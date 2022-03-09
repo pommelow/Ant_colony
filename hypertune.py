@@ -1,11 +1,13 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 from time import time
-from tqdm import tqdm
 from antcolony_mpi import AntColony, IndependentColonies
 from localsearch import Identity
 
-# alpha=0.5
+
+alpha=2
 beta=1
 rho=0.1
 Q=1
@@ -30,13 +32,11 @@ local_search_method = Identity()
 communication = IndependentColonies()
 
 
-
-alpha_l = [0.1, 0.1, 0.1]  # , 0.5, 1, 1.25, 1.5, 2]
-max_time = 180
+max_time = 6
 
 plt.figure()
 
-for alpha in tqdm(alpha_l):
+for _ in range(3):
 
     ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
 
@@ -62,9 +62,10 @@ for alpha in tqdm(alpha_l):
     history["best_cost"].append(best_cost)
     history["time"].append(time() - top)
 
-    plt.plot(history["time"], history["best_cost"], label=f"a = {alpha}")
+    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity"
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
 
-plt.xlabel("Time")
-plt.ylabel("Best cost")
-plt.legend()
-plt.show()
+    n = len(os.listdir(folder_name))
+    with open(folder_name + f"/{n:>03}", "wb") as file:
+        pickle.dump(history, file)
