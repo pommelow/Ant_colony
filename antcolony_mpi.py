@@ -4,16 +4,55 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
+import make_all
 
 from config import N1, N2, N3, NUM_ITER
 
 import mpi4py
 from mpi4py import MPI
 
-import pickle
+
+def make(simd="avx2", Olevel="-O3"):
+    os.chdir("./iso3dfd-st7/")
+    try:
+        subprocess.run(["make", "clean"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print(e)
+        pass
+    subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    os.chdir("..")
 
 
-def folder_results():
+def run(simd, Olevel, num_thread, b1, b2, b3):
+    basename = 'iso3dfd_dev13_cpu'
+    exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
+    # filename = os.listdir("./iso3dfd-st7/bin/")[0]
+    # print(filename)
+    # print(n1, n2, num_thread, iteration, b1, b2, b3)
+    p = subprocess.Popen([
+        f"./iso3dfd-st7/bin/{exec_name}",
+        N1,
+        N2,
+        N3,
+        str(num_thread),
+        NUM_ITER,
+        str(b1),
+        str(b2),
+        str(b3)
+    ],
+        stdout=subprocess.PIPE)
+    p.wait()
+    outputs = p.communicate()[0].decode("utf-8").split("\n")
+    time = float(outputs[-4].split(" ")[-2])
+    throughput = float(outputs[-3].split(" ")[-2])
+    flops = float(outputs[-2].split(" ")[-2])
+    return time, throughput, flops
+
+
+def save_results(lines):
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
@@ -319,13 +358,10 @@ if __name__ == "__main__":
 
     communication.initial_communication()
 
-    # Path to save files
-    if communication.Me == 0:
-        path_dir = folder_results()
-
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
+        communication.Barrier()
         pathes, performances = communication.on_epoch_end(
             ant_colony, pathes, performances)
 
