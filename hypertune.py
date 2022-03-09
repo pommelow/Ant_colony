@@ -1,12 +1,17 @@
-from antcolony import *
+import numpy as np
+import matplotlib.pyplot as plt
+from time import time
+from tqdm import tqdm
+from antcolony_mpi import AntColony, IndependentColonies
+from localsearch import Identity
 
-alpha=0.5
-beta=0
-rho=0.2
+# alpha=0.5
+beta=1
+rho=0.1
 Q=1
-nb_ant=10
+nb_ant=15
 
-block_min = 1
+block_min = 16
 block_max = 256
 block_size = 16
 
@@ -14,59 +19,52 @@ levels = [("init", ["init"]),
             ("simd", ["avx", "avx2", "avx512", "sse"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+            ("b1", list(np.arange(block_min, block_max+1, block_size))),
+            ("b2", list(np.arange(block_min, block_max+1, block_size))),
+            ("b3", list(np.arange(block_min, block_max+1, block_size)))
             ]
 
-local_search_method = GreedySearch(kmax=1)
+method = "mmas"
+local_search_method = Identity()
+
+communication = IndependentColonies()
 
 
 
+alpha_l = [0.1, 0.1, 0.1]  # , 0.5, 1, 1.25, 1.5, 2]
+max_time = 180
 
-alpha_l=np.arange(5,55,5)/10
-rho_l=np.arange(0,10)/10
-nb_ant=np.arange(5,55,5)
-methods=["basic","asrank","elitist","mmas"]
+plt.figure()
 
-res=[]
-res_path=[]
+for alpha in tqdm(alpha_l):
 
-for alpha in alpha_l :
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
 
-    epoch_max=10
-    epoch=0
-    ant_colony=AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
+    best_cost = np.inf
+    best_path = []
+    history = {"best_cost": [], "time": []}
 
-    best_time=1000000
-    current_time=np.inf
-    best_path=[]
-    current_path=[]
+    top = time()
 
-    while (abs(best_time-current_time)>0.1) and (epoch<=epoch_max):
-
-        if best_time>current_time:
-            best_time=current_time
-            best_path=current_path
-
-        epoch+=1
-        pathes,performances=ant_colony.epoch()
-
-        current_time=performances[0]
-        current_path=[e[1] for e in pathes[0]]
+    communication.initial_communication()
+    while time()-top < max_time:
+        communication.on_epoch_begin()
+        pathes, performances = ant_colony.epoch()
+        pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
+        
+        if performances[0] < best_cost:
+            best_path = pathes[0]
+            best_cost = performances[0]
+            history["best_cost"].append(best_cost)
+            history["time"].append(time() - top)
     
-    res.append(best_time)
-    res_path.append(best_path)
+    best_path, best_cost = communication.last_communication(best_path, best_cost)
+    history["best_cost"].append(best_cost)
+    history["time"].append(time() - top)
 
-    
+    plt.plot(history["time"], history["best_cost"], label=f"a = {alpha}")
 
-
-
-
-
-
-plt.plot(alpha_l,res)
-plt.xlabel("alpha")
-plt.ylabel("time")
+plt.xlabel("Time")
+plt.ylabel("Best cost")
+plt.legend()
 plt.show()
-

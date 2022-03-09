@@ -1,11 +1,8 @@
-import itertools
 import os
 import subprocess
-from localsearch import Identity
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 from pathlib import Path
 
 from config import N1, N2, N3, NUM_ITER
@@ -13,24 +10,10 @@ from config import N1, N2, N3, NUM_ITER
 import mpi4py
 from mpi4py import MPI
 
-def make(simd="avx2", Olevel="-O3"):
-    os.chdir("./iso3dfd-st7/")
-    try:
-        subprocess.run(["make", "clean"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-    except Exception as e:
-        print(e)
-        pass
-    subprocess.run(["make", "build", f"simd={simd}",f" Olevel={Olevel} "],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-
-    os.chdir("..")
-
 
 def run(simd, Olevel, num_thread, b1, b2, b3):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
-    # filename = os.listdir("./iso3dfd-st7/bin/")[0]
-    # print(filename)
-    # print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{exec_name}",
         N1,
@@ -76,7 +59,7 @@ def save_results(lines):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, local_search_method):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, method, local_search_method):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
@@ -85,6 +68,7 @@ class AntColony():
 
         self.levels = levels
         self.graph = self.__init_graph()
+        self.method = method
         self.local_search_method = local_search_method
 
     def __init_graph(self):
@@ -135,10 +119,10 @@ class AntColony():
             path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
         return path
 
-    def update_tau(self, pathes, method='basic'):
+    def update_tau(self, pathes):
         """ Updates the amount of pheromone on each edge based on the method choosen """
         # Basic Algorithm
-        if method == 'basic':
+        if self.method == 'basic':
             # Evaporation:
             for origin, destiny in self.graph.edges(data=False):
                 self.graph[origin][destiny]['tau'] = (
@@ -149,7 +133,7 @@ class AntColony():
                         (1/self.graph[path[i]][path[i+1]]['nu'])
 
         # ASrank
-        if method == 'asrank':
+        if self.method == 'asrank':
             n_to_update = 5
             # Evaporation:
             for origin, destiny, edge in self.graph.edges(data=True):
@@ -165,7 +149,7 @@ class AntColony():
                 weight += -1/n_to_update
 
         # Elitist Ant System (Elistist AS)
-        if method == 'elitist':
+        if self.method == 'elitist':
             # Evaporation:
             for origin, destiny, edge in self.graph.edges(data=True):
                 self.graph[origin][destiny]['tau'] = (
@@ -174,7 +158,7 @@ class AntColony():
             extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
             for i in range(len(pathes[0])-1):  # Reward best ant
                 self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] += extra_phero * \
-                    self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
+                    self.Q/(1/self.graph[pathes[0][i]][pathes[0][i+1]]['nu'])
 
             # Adding pheromone
             for path in pathes:
@@ -183,18 +167,23 @@ class AntColony():
                         (1/self.graph[path[i]][path[i+1]]['nu'])
 
         # MMAS
-        if method == 'mmas':
+        if self.method == 'mmas':
             tau_min = 0.1
             tau_max = 10.0
+            n_to_update = 5
             # Evaporation
             for origin, destiny in self.graph.edges(data=False):
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
                 self.graph[origin][destiny]['tau'] = max(update, tau_min)
 
-            for i in range(len(pathes[0]-1)):  # Only best at adds pheromone
-                increment = self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
-                self.graph[path[i]][path[i+1]]['tau'] = min(
-                    self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
+            # Adding pheromone weighted by path's rank
+            for path in pathes[:n_to_update]:
+                weight = 1
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+                    self.graph[path[i]][path[i+1]]['tau'] = min(self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                weight -= 1/n_to_update
 
     def epoch(self):
         # pathes and perfornamces of all ants of that generation
@@ -232,7 +221,7 @@ class IndependentColonies(Communication):
     def on_epoch_end(self, ant_colony, pathes, performances):
         pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
-        ant_colony.update_tau(pathes, method='basic')
+        ant_colony.update_tau(pathes)
         return pathes, performances
     
     def last_communication(self, best_path, best_cost):
@@ -262,7 +251,7 @@ class ExchangeAll(Communication):
         pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         # Update pheromones
-        ant_colony.update_tau(pathes, method='basic')
+        ant_colony.update_tau(pathes)
         return pathes, performances
     
     def last_communication(self, best_path, best_cost):
@@ -276,12 +265,13 @@ class ExchangeAll(Communication):
 
 
 if __name__ == "__main__":
+    from localsearch import Identity
     #Parameters
     alpha = 0.5
     beta = 0
     rho = 0.2
     Q = 1
-    nb_ant = 30
+    nb_ant = 5
     nb_epochs = 5
 
     block_min = 1
@@ -297,10 +287,11 @@ if __name__ == "__main__":
             ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
             ]
 
+    method = "mmas"
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, local_search_method)
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
 
 
     best_path = None
