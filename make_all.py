@@ -2,9 +2,6 @@ import itertools
 import os
 import subprocess
 
-comb_build = list(itertools.product(["avx", "avx2", 'avx512', 'sse'],
-                                    ["-O2", "-O3", "-Ofast"]))
-
 
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
@@ -31,6 +28,11 @@ def build(comb):
     for combination in comb:
         make(combination[0], combination[1])
 
+if __name__ == '__main__':
+    os.chdir("./iso3dfd-st7/")
+    os.system(f"make clean")
+    os.chdir("..")
 
-os.system(f"make clean")
-build(comb_build)
+    comb_build = list(itertools.product(["avx", "avx2", 'avx512', 'sse'],
+                                    ["-O2", "-O3", "-Ofast"]))
+    build(comb_build)
