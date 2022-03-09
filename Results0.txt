@@ -1,0 +1,67 @@
+
+ Epoch: 0
+Time to execute: 0.140 || Throughput: 98.730 || Flops: 6.020
+ Path: ['init', 'avx', '-O2', 32, 64, 64, 128]
+ %---Time to execute: 0.170 || Throughput: 83.440 || Flops: 5.090
+ Path: ['init', 'avx2', '-O2', 32, 128, 64, 256]
+ %---Time to execute: 0.200 || Throughput: 71.220 || Flops: 4.340
+ Path: ['init', 'sse', '-O2', 32, 192, 256, 64]
+ %---Time to execute: 0.220 || Throughput: 64.580 || Flops: 3.940
+ Path: ['init', 'avx2', '-O3', 32, 256, 192, 64]
+ %---Time to execute: 0.230 || Throughput: 60.610 || Flops: 3.700
+ Path: ['init', 'avx2', '-O3', 32, 64, 256, 192]
+ %---Time to execute: 0.240 || Throughput: 58.640 || Flops: 3.580
+ Path: ['init', 'avx2', '-O3', 32, 256, 192, 64]
+ %---Time to execute: 0.250 || Throughput: 55.140 || Flops: 3.360
+ Path: ['init', 'avx512', '-O2', 32, 128, 192, 64]
+ %---Time to execute: 0.250 || Throughput: 56.160 || Flops: 3.430
+ Path: ['init', 'avx', '-O3', 32, 256, 256, 192]
+ %---Time to execute: 0.250 || Throughput: 55.110 || Flops: 3.360
+ Path: ['init', 'sse', '-O2', 32, 256, 256, 192]
+ %---Time to execute: 0.280 || Throughput: 50.900 || Flops: 3.110
+ Path: ['init', 'sse', '-Ofast', 32, 192, 256, 192]
+ %---
+ Epoch: 1
+Time to execute: 0.100 || Throughput: 144.130 || Flops: 8.790
+ Path: ['init', 'avx512', '-Ofast', 32, 128, 64, 64]
+ %---Time to execute: 0.170 || Throughput: 80.500 || Flops: 4.910
+ Path: ['init', 'avx2', '-O2', 32, 128, 256, 64]
+ %---Time to execute: 0.200 || Throughput: 69.210 || Flops: 4.220
+ Path: ['init', 'avx2', '-Ofast', 32, 256, 64, 192]
+ %---Time to execute: 0.200 || Throughput: 69.180 || Flops: 4.220
+ Path: ['init', 'avx', '-O2', 32, 128, 64, 128]
+ %---Time to execute: 0.230 || Throughput: 60.430 || Flops: 3.690
+ Path: ['init', 'avx512', '-O3', 32, 128, 128, 64]
+ %---Time to execute: 0.250 || Throughput: 55.140 || Flops: 3.360
+ Path: ['init', 'sse', '-O2', 32, 128, 128, 128]
+ %---Time to execute: 0.270 || Throughput: 51.400 || Flops: 3.140
+ Path: ['init', 'avx2', '-O2', 32, 256, 128, 256]
+ %---Time to execute: 0.280 || Throughput: 49.900 || Flops: 3.040
+ Path: ['init', 'avx', '-O3', 32, 128, 128, 128]
+ %---Time to execute: 0.310 || Throughput: 46.000 || Flops: 2.810
+ Path: ['init', 'sse', '-Ofast', 32, 256, 128, 128]
+ %---Time to execute: 0.350 || Throughput: 39.880 || Flops: 2.430
+ Path: ['init', 'avx', '-O3', 32, 256, 128, 256]
+ %---
+ Epoch: 2
+Time to execute: 0.120 || Throughput: 117.060 || Flops: 7.140
+ Path: ['init', 'sse', '-O3', 32, 64, 128, 64]
+ %---Time to execute: 0.150 || Throughput: 92.400 || Flops: 5.640
+ Path: ['init', 'avx2', '-Ofast', 32, 128, 256, 64]
+ %---Time to execute: 0.180 || Throughput: 77.390 || Flops: 4.720
+ Path: ['init', 'avx512', '-Ofast', 32, 192, 64, 128]
+ %---Time to execute: 0.200 || Throughput: 69.470 || Flops: 4.240
+ Path: ['init', 'avx', '-O3', 32, 128, 64, 256]
+ %---Time to execute: 0.200 || Throughput: 69.210 || Flops: 4.220
+ Path: ['init', 'sse', '-O2', 32, 64, 192, 128]
+ %---Time to execute: 0.220 || Throughput: 63.130 || Flops: 3.850
+ Path: ['init', 'avx2', '-O3', 32, 192, 64, 128]
+ %---Time to execute: 0.220 || Throughput: 62.970 || Flops: 3.840
+ Path: ['init', 'sse', '-O3', 32, 192, 64, 192]
+ %---Time to execute: 0.220 || Throughput: 63.360 || Flops: 3.870
+ Path: ['init', 'avx', '-Ofast', 32, 256, 64, 256]
+ %---Time to execute: 0.290 || Throughput: 48.570 || Flops: 2.960
+ Path: ['init', 'avx2', '-O3', 32, 256, 128, 192]
+ %---Time to execute: 0.290 || Throughput: 48.750 || Flops: 2.970
+ Path: ['init', 'avx512', '-O2', 32, 256, 192, 256]
+ %---
