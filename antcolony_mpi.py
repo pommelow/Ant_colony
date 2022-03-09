@@ -57,7 +57,7 @@ def run(simd, Olevel, num_thread, b1, b2, b3):
     return time, throughput, flops
 
 
-def save_results(lines):
+def save_results(lines, type='best'):
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
@@ -73,15 +73,21 @@ def save_results(lines):
         for epoch, result_epoch in enumerate(lines):
             f.write('\n %--------')
             f.write('\n Epoch: %s\n' % epoch)
-            for ant in result_epoch:
-                # f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                #     ant[0][0], ant[0][1], ant[0][2]))
+            if type == 'best':
+                best = list(result_epoch)[0]
                 f.write('\n Path: %s' % str([item[1]
-                        for item in ant[1]]))
-                f.write('\n Result:' + str(ant[0]))
-                # f.write('\n Path: %s' % str([item[1]
-                #         for item in ant[1]]))
-                f.write('\n')
+                                             for item in best[1]]))
+                f.write('\n Result: %s' % str(best[0]))
+            else:
+                for ant in result_epoch:
+                    # f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
+                    #     ant[0][0], ant[0][1], ant[0][2]))
+                    f.write('\n Path: %s' % str([item[1]
+                            for item in ant[1]]))
+                    f.write('\n Result:' + str(ant[0]))
+                    # f.write('\n Path: %s' % str([item[1]
+                    #         for item in ant[1]]))
+                    f.write('\n')
 
 
 class AntColony():
@@ -138,7 +144,7 @@ class AntColony():
 
             # Choose a node according to weights
             tau = np.array([e["tau"]
-                           for (_, e) in items_view], dtype=np.float32)
+                            for (_, e) in items_view], dtype=np.float32)
             nu = np.array([e["nu"] for (_, e) in items_view], dtype=np.float32)
             weights = (tau**self.alpha) * (nu**self.beta)
             weights /= np.sum(weights)
@@ -312,7 +318,7 @@ def main():
     rho = 0.2
     Q = 1
     nb_ant = 1
-    nb_epochs = 2
+    nb_epochs = 3
 
     block_min = 1
     block_max = 64
@@ -349,7 +355,7 @@ def main():
             best_path = pathes[0]
             best_cost = performances[0]
     if communication.Me == 0:
-        save_results(to_save)
+        save_results(to_save, 'best')
     best_path, best_cost = communication.last_communication(
         best_path, best_cost)
 
