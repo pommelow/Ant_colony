@@ -1,3 +1,6 @@
+import itertools
+import getopt
+import sys
 import os
 import subprocess
 import networkx as nx
@@ -306,19 +309,37 @@ class ExchangeAll(Communication):
         return best_path, best_cost
 
 
-if __name__ == "__main__":
-    from localsearch import Identity
+
+def main():
+
+    # Compile at each machine:
+
+    argv = sys.argv[1:]
+    if len(argv) < 2:
+        str_error = '[error] : incorrect number of parameters\n \
+            Usage: python antcolony_mpi.py -m 0 (or --make 0`)'
+        raise Exception(str_error)
+    try:
+        opts, _args = getopt.getopt(argv,"m", ['make'])
+    except getopt.GetoptError as e:
+        print('[error] : ', e)
+    
+
+    make = int(_args[0])
+    print('make: ', make)
+    if make != 0:
+        subprocess.call(["python", "make_all.py"])
 
     # Parameters
     alpha = 1
     beta = 0
     rho = 0.5
     Q = 1
-    nb_ant = 20
-    nb_epochs = 30
+    nb_ant = 1
+    nb_epochs = 2
 
-    block_min = 16
-    block_max = 256
+    block_min = 1
+    block_max = 64
     block_size = 16
 
     # levels = [("init", ["init"]),
@@ -380,3 +401,6 @@ if __name__ == "__main__":
     if communication.Me == 0:
         print("Best path: ", best_path)
         print("Best cost: ", best_cost)
+
+if __name__ == "__main__":
+    main()
