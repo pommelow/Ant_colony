@@ -32,7 +32,7 @@ local_search_method = Identity()
 communication = IndependentColonies()
 
 
-max_time = 6
+max_time = 600
 
 plt.figure()
 
