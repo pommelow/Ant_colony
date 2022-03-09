@@ -63,21 +63,25 @@ def save_results(lines):
     counter = 0
     filename = "Results{}.txt"
     Path("./Results").mkdir(parents=True, exist_ok=True)
-    print('./Results/' + filename.format(counter))
+    # print('./Results/' + filename.format(counter))
     while os.path.isfile('./Results/' + filename.format(counter)):
         counter += 1
     filename = './Results/' + filename.format(counter)
-    print(filename)
+    # print(filename)
 
     with open(filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
+            f.write('\n %--------')
             f.write('\n Epoch: %s\n' % epoch)
             for ant in result_epoch:
-                f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                    ant[0][0], ant[0][1], ant[0][2]))
+                # f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
+                #     ant[0][0], ant[0][1], ant[0][2]))
                 f.write('\n Path: %s' % str([item[1]
                         for item in ant[1]]))
-                f.write('\n %---')
+                f.write('\n Result:' + str(ant[0]))
+                # f.write('\n Path: %s' % str([item[1]
+                #         for item in ant[1]]))
+                f.write('\n')
 
 
 class AntColony():
@@ -283,26 +287,24 @@ class ExchangeAll(Communication):
         return best_path, best_cost
 
 
-
 def main():
 
     # Compile at each machine:
 
-    argv = sys.argv[1:]
-    if len(argv) < 2:
-        str_error = '[error] : incorrect number of parameters\n \
-            Usage: python antcolony_mpi.py -m 0 (or --make 0`)'
-        raise Exception(str_error)
-    try:
-        opts, _args = getopt.getopt(argv,"m", ['make'])
-    except getopt.GetoptError as e:
-        print('[error] : ', e)
-    
+    # argv = sys.argv[1:]
+    # if len(argv) < 2:
+    #     str_error = '[error] : incorrect number of parameters\n \
+    #         Usage: python antcolony_mpi.py -m 0 (or --make 0`)'
+    #     raise Exception(str_error)
+    # try:
+    #     opts, _args = getopt.getopt(argv, "m", ['make'])
+    # except getopt.GetoptError as e:
+    #     print('[error] : ', e)
 
-    make = int(_args[0])
-    print('make: ', make)
-    if make != 0:
-        subprocess.call(["python", "make_all.py"])
+    # make = int(_args[0])
+    # print('make: ', make)
+    # if make != 0:
+    #     subprocess.call(["python", "make_all.py"])
 
     # Parameters
     alpha = 0.5
@@ -335,24 +337,26 @@ def main():
     best_cost = np.inf
 
     communication.initial_communication()
-
+    to_save = []
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(
             ant_colony, pathes, performances)
-
+        to_save.append(zip(performances, pathes))
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
-
+    if communication.Me == 0:
+        save_results(to_save)
     best_path, best_cost = communication.last_communication(
         best_path, best_cost)
 
     if communication.Me == 0:
         print("Best path: ", best_path)
         print("Best cost: ", best_cost)
+
 
 if __name__ == "__main__":
     main()
