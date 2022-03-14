@@ -1,0 +1,21 @@
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s]
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s][A
+
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s][A[A
+
+
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s][A[A[Asrun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 12104.0 ON kyle18 CANCELLED AT 2022-03-09T16:50:43 ***
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   RANK 2 PID 443870 RUNNING AT kyle19
+=   KILLED BY SIGNAL: 15 (Terminated)
+===================================================================================
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   RANK 3 PID 443871 RUNNING AT kyle19
+=   KILLED BY SIGNAL: 15 (Terminated)
+===================================================================================
+slurmstepd: error: *** JOB 12104 ON kyle18 CANCELLED AT 2022-03-09T16:50:43 ***

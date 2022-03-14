@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/usr/users/cpust75/cpust75_6/Ant_colony/antcolony_mpi.py", line 397, in <module>
+    main()
+  File "/usr/users/cpust75/cpust75_6/Ant_colony/antcolony_mpi.py", line 309, in main
+    raise Exception(str_error)
+Exception: [error] : incorrect number of parameters
+             Usage: python antcolony_mpi.py -m 0

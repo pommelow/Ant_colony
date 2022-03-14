@@ -1,0 +1,4 @@
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s]
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s][A
+Epoch:   3%|▎         | 1/30 [01:29<43:20, 89.66s/it]Epoch:   3%|▎         | 1/30 [01:29<43:20, 89.66s/it][Asrun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 12107 ON kyle18 CANCELLED AT 2022-03-09T16:54:34 ***

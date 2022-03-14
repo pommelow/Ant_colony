@@ -2,15 +2,22 @@ import enum
 from antcolony import *
 from localsearch import Identity
 from itertools import product
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import pickle
+from time import time
+from antcolony_mpi import AntColony, IndependentColonies
+from localsearch import Identity
 
-alpha=0.5
-beta=0
-rho=0.2
+
+alpha=2
+beta=1
+rho=0.1
 Q=1
-nb_ant=10
-method="elitist"
+nb_ant=15
 
-block_min = 1
+block_min = 16
 block_max = 256
 block_size = 16
 
@@ -18,9 +25,9 @@ levels = [("init", ["init"]),
             ("simd", ["avx", "avx2", "avx512", "sse"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+            ("b1", list(np.arange(block_min, block_max+1, block_size))),
+            ("b2", list(np.arange(block_min, block_max+1, block_size))),
+            ("b3", list(np.arange(block_min, block_max+1, block_size)))
             ]
 
 alpha_l=np.arange(5,55,5)/10

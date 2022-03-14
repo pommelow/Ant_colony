@@ -1,0 +1,7 @@
+MPI startup(): PMI server not found. Please set I_MPI_PMI_LIBRARY variable if it is not a singleton case.
+MPI startup(): PMI server not found. Please set I_MPI_PMI_LIBRARY variable if it is not a singleton case.
+MPI startup(): PMI server not found. Please set I_MPI_PMI_LIBRARY variable if it is not a singleton case.
+MPI startup(): PMI server not found. Please set I_MPI_PMI_LIBRARY variable if it is not a singleton case.
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+Epoch:   0%|          | 0/30 [00:00<?, ?it/s]srun: error: kyle19: task 1: Terminated
+slurmstepd: error: *** JOB 12101 ON kyle18 CANCELLED AT 2022-03-09T16:42:33 ***

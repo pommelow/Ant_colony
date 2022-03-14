@@ -1,0 +1,18 @@
+Epoch:   0%|          | 0/100 [00:00<?, ?it/s]
+Epoch:   0%|          | 0/100 [00:00<?, ?it/s][A
+Epoch:   1%|          | 1/100 [31:32<52:03:24, 1892.97s/it]Epoch:   1%|          | 1/100 [31:32<52:03:24, 1892.97s/it][A
+Epoch:   2%|▏         | 2/100 [58:58<47:34:19, 1747.55s/it][AEpoch:   2%|▏         | 2/100 [58:58<47:34:19, 1747.55s/it]srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 12113.0 ON kyle18 CANCELLED AT 2022-03-09T18:09:21 DUE TO TIME LIMIT ***
+slurmstepd: error: *** JOB 12113 ON kyle18 CANCELLED AT 2022-03-09T18:09:21 DUE TO TIME LIMIT ***
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   RANK 0 PID 460673 RUNNING AT kyle18
+=   KILLED BY SIGNAL: 15 (Terminated)
+===================================================================================
+
+===================================================================================
+=   BAD TERMINATION OF ONE OF YOUR APPLICATION PROCESSES
+=   RANK 1 PID 460674 RUNNING AT kyle18
+=   KILLED BY SIGNAL: 15 (Terminated)
+===================================================================================
