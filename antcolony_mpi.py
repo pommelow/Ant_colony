@@ -1,4 +1,5 @@
 import itertools
+import pickle
 from mpl_toolkits.mplot3d import Axes3D
 import getopt
 import sys
@@ -68,9 +69,11 @@ def save_results(lines, type='best'):
     # Creates a ./Results/Run{} folder
     while os.path.isdir('./Results/' + foldername.format(counter)):
         counter += 1
-    Path(str("./Results/"+foldername.format(counter))
-         ).mkdir(parents=True, exist_ok=True)
-    path_dir = "./Results/"+foldername.format(counter)+'/'
+    filename = './Results/' + filename.format(counter)
+    # print(filename)
+    filename_pickle = filename[:-4] + '_pickle.plk'
+    with open(filename_pickle, 'wb') as file_data:
+        pickle.dump(lines, file_data)
 
     return path_dir
 
@@ -353,15 +356,17 @@ def main():
         subprocess.call(["python", "make_all.py"])
 
     # Parameters
+    from localsearch import Identity
+    #Parameters
     alpha = 1
     beta = 0
     rho = 0.6
     Q = 1
-    nb_ant = 50
-    nb_epochs = 100
+    nb_ant = 2
+    nb_epochs = 1
 
     block_min = 1
-    block_max = 1024
+    block_max = 32
     block_size = 16
 
     # levels = [("init", ["init"]),
@@ -416,8 +421,6 @@ def main():
             best_path = pathes[0]
             best_cost = performances[0]
     if communication.Me == 0:
-        save_results(to_save, 'all')
-
         if debug :
             if communication.Me == 0:
                 save_results([zip(performances, pathes)], 'all')
