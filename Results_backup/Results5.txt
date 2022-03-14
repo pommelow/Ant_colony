@@ -1,0 +1,303 @@
+
+ %--------
+ Epoch: 0
+
+ Path: ['init', 'avx512', '-Ofast', 4, 720, 16, 304]
+ Result:2.96
+
+ Path: ['init', 'sse', '-O2', 2, 496, 64, 464]
+ Result:3.44
+
+ Path: ['init', 'sse', '-O3', 8, 944, 16, 368]
+ Result:3.46
+
+ Path: ['init', 'sse', '-O3', 1, 928, 336, 16]
+ Result:3.64
+
+ Path: ['init', 'avx', '-O2', 1, 288, 656, 48]
+ Result:3.64
+
+ Path: ['init', 'avx', '-Ofast', 1, 416, 448, 928]
+ Result:3.65
+
+ Path: ['init', 'avx2', '-O3', 4, 496, 64, 1008]
+ Result:3.74
+
+ Path: ['init', 'avx2', '-Ofast', 2, 144, 112, 1024]
+ Result:3.95
+
+ Path: ['init', 'sse', '-O3', 8, 496, 160, 16]
+ Result:4.06
+
+ Path: ['init', 'avx', '-O2', 2, 720, 624, 16]
+ Result:4.23
+
+ Path: ['init', 'avx', '-O2', 4, 160, 48, 880]
+ Result:4.3
+
+ Path: ['init', 'avx2', '-O3', 4, 368, 448, 64]
+ Result:4.37
+
+ Path: ['init', 'avx', '-Ofast', 16, 800, 240, 16]
+ Result:4.37
+
+ Path: ['init', 'sse', '-Ofast', 1, 528, 288, 656]
+ Result:4.37
+
+ Path: ['init', 'avx2', '-O3', 1, 896, 560, 736]
+ Result:4.38
+
+ Path: ['init', 'sse', '-O2', 1, 896, 544, 736]
+ Result:4.41
+
+ Path: ['init', 'avx2', '-Ofast', 2, 464, 592, 48]
+ Result:4.43
+
+ Path: ['init', 'avx2', '-O3', 1, 720, 864, 544]
+ Result:4.46
+
+ Path: ['init', 'avx', '-O3', 1, 560, 448, 32]
+ Result:4.57
+
+ Path: ['init', 'avx512', '-Ofast', 1, 208, 832, 384]
+ Result:4.63
+
+ Path: ['init', 'avx', '-O2', 1, 960, 880, 368]
+ Result:4.71
+
+ Path: ['init', 'avx2', '-Ofast', 1, 864, 672, 624]
+ Result:4.75
+
+ Path: ['init', 'avx', '-O2', 2, 96, 320, 176]
+ Result:4.79
+
+ Path: ['init', 'avx2', '-O3', 1, 208, 336, 304]
+ Result:4.84
+
+ Path: ['init', 'sse', '-O3', 1, 288, 864, 224]
+ Result:4.86
+
+ Path: ['init', 'sse', '-Ofast', 16, 816, 1008, 16]
+ Result:5.1
+
+ Path: ['init', 'sse', '-O3', 2, 144, 1024, 992]
+ Result:5.88
+
+ Path: ['init', 'avx', '-Ofast', 16, 928, 48, 128]
+ Result:6.05
+
+ Path: ['init', 'avx2', '-O2', 4, 192, 208, 144]
+ Result:6.33
+
+ Path: ['init', 'sse', '-O2', 8, 256, 400, 48]
+ Result:6.57
+
+ Path: ['init', 'sse', '-O2', 8, 32, 384, 480]
+ Result:6.68
+
+ Path: ['init', 'avx', '-O2', 2, 560, 880, 192]
+ Result:6.97
+
+ Path: ['init', 'sse', '-O2', 16, 16, 592, 896]
+ Result:7.27
+
+ Path: ['init', 'avx2', '-O2', 8, 16, 848, 208]
+ Result:7.78
+
+ Path: ['init', 'avx', '-O3', 4, 96, 576, 928]
+ Result:8.29
+
+ Path: ['init', 'avx', '-O2', 8, 352, 768, 64]
+ Result:8.5
+
+ Path: ['init', 'sse', '-O2', 2, 288, 1024, 768]
+ Result:8.93
+
+ Path: ['init', 'avx2', '-O2', 2, 496, 304, 368]
+ Result:9.17
+
+ Path: ['init', 'avx2', '-O3', 2, 544, 304, 608]
+ Result:9.18
+
+ Path: ['init', 'avx', '-O3', 2, 608, 528, 736]
+ Result:9.19
+
+ Path: ['init', 'avx', '-O3', 2, 1008, 592, 848]
+ Result:9.35
+
+ Path: ['init', 'avx512', '-O3', 8, 48, 1008, 224]
+ Result:9.37
+
+ Path: ['init', 'avx512', '-Ofast', 2, 976, 768, 432]
+ Result:9.42
+
+ Path: ['init', 'avx2', '-Ofast', 16, 752, 176, 48]
+ Result:9.49
+
+ Path: ['init', 'avx', '-O3', 2, 992, 960, 1008]
+ Result:9.54
+
+ Path: ['init', 'avx', '-O3', 2, 944, 720, 736]
+ Result:9.54
+
+ Path: ['init', 'avx512', '-O2', 2, 528, 608, 688]
+ Result:9.58
+
+ Path: ['init', 'avx512', '-O2', 4, 48, 736, 656]
+ Result:9.74
+
+ Path: ['init', 'avx512', '-O3', 2, 912, 736, 576]
+ Result:9.77
+
+ Path: ['init', 'sse', '-O3', 2, 528, 880, 752]
+ Result:9.77
+
+ Path: ['init', 'sse', '-O3', 2, 368, 880, 880]
+ Result:9.81
+
+ Path: ['init', 'avx512', '-Ofast', 16, 512, 48, 1024]
+ Result:10.94
+
+ Path: ['init', 'sse', '-O3', 8, 944, 192, 128]
+ Result:11.0
+
+ Path: ['init', 'avx2', '-O3', 4, 624, 224, 528]
+ Result:11.73
+
+ Path: ['init', 'sse', '-O2', 8, 192, 144, 720]
+ Result:12.99
+
+ Path: ['init', 'avx512', '-O3', 8, 768, 144, 208]
+ Result:14.03
+
+ Path: ['init', 'avx', '-Ofast', 4, 928, 288, 416]
+ Result:15.33
+
+ Path: ['init', 'sse', '-O3', 16, 896, 80, 704]
+ Result:15.47
+
+ Path: ['init', 'avx', '-Ofast', 4, 240, 256, 752]
+ Result:16.86
+
+ Path: ['init', 'avx2', '-Ofast', 4, 256, 928, 704]
+ Result:18.75
+
+ Path: ['init', 'avx2', '-O2', 4, 368, 512, 784]
+ Result:19.12
+
+ Path: ['init', 'sse', '-Ofast', 4, 416, 528, 928]
+ Result:19.25
+
+ Path: ['init', 'avx512', '-Ofast', 16, 976, 144, 144]
+ Result:19.62
+
+ Path: ['init', 'avx512', '-O3', 16, 48, 832, 992]
+ Result:19.73
+
+ Path: ['init', 'sse', '-Ofast', 4, 784, 464, 976]
+ Result:19.95
+
+ Path: ['init', 'avx512', '-O2', 8, 256, 224, 352]
+ Result:23.03
+
+ Path: ['init', 'avx512', '-O3', 16, 96, 688, 176]
+ Result:24.06
+
+ Path: ['init', 'avx', '-O2', 8, 336, 240, 704]
+ Result:24.5
+
+ Path: ['init', 'avx512', '-O2', 8, 816, 640, 208]
+ Result:29.89
+
+ Path: ['init', 'avx2', '-Ofast', 8, 560, 1024, 752]
+ Result:30.58
+
+ Path: ['init', 'avx', '-O2', 32, 768, 64, 672]
+ Result:35.01
+
+ Path: ['init', 'avx', '-O3', 8, 960, 528, 224]
+ Result:35.43
+
+ Path: ['init', 'avx512', '-O3', 16, 160, 528, 208]
+ Result:35.44
+
+ Path: ['init', 'avx', '-O2', 8, 240, 672, 768]
+ Result:35.54
+
+ Path: ['init', 'sse', '-Ofast', 8, 1024, 816, 992]
+ Result:36.03
+
+ Path: ['init', 'sse', '-Ofast', 8, 640, 816, 608]
+ Result:36.76
+
+ Path: ['init', 'avx', '-O2', 8, 736, 928, 928]
+ Result:39.39
+
+ Path: ['init', 'avx512', '-Ofast', 8, 816, 288, 800]
+ Result:40.8
+
+ Path: ['init', 'avx2', '-O3', 8, 528, 256, 800]
+ Result:41.26
+
+ Path: ['init', 'avx', '-O2', 16, 544, 208, 912]
+ Result:43.09
+
+ Path: ['init', 'avx', '-O3', 32, 80, 576, 192]
+ Result:50.53
+
+ Path: ['init', 'avx', '-O3', 16, 144, 784, 608]
+ Result:51.47
+
+ Path: ['init', 'avx2', '-Ofast', 16, 144, 832, 688]
+ Result:52.37
+
+ Path: ['init', 'avx', '-O2', 16, 208, 928, 512]
+ Result:60.1
+
+ Path: ['init', 'avx512', '-O3', 16, 576, 336, 576]
+ Result:60.9
+
+ Path: ['init', 'avx2', '-Ofast', 16, 448, 464, 720]
+ Result:63.95
+
+ Path: ['init', 'avx', '-Ofast', 32, 112, 272, 976]
+ Result:77.16
+
+ Path: ['init', 'avx', '-O2', 16, 256, 416, 608]
+ Result:77.78
+
+ Path: ['init', 'sse', '-O2', 32, 944, 304, 128]
+ Result:80.06
+
+ Path: ['init', 'avx2', '-O3', 16, 864, 800, 528]
+ Result:80.85
+
+ Path: ['init', 'avx2', '-Ofast', 16, 336, 272, 704]
+ Result:86.3
+
+ Path: ['init', 'sse', '-Ofast', 32, 272, 560, 144]
+ Result:87.07
+
+ Path: ['init', 'avx2', '-O2', 16, 688, 688, 800]
+ Result:90.93
+
+ Path: ['init', 'avx', '-O2', 32, 384, 1008, 176]
+ Result:108.28
+
+ Path: ['init', 'avx2', '-O3', 32, 208, 304, 656]
+ Result:112.07
+
+ Path: ['init', 'avx512', '-O2', 32, 1008, 528, 624]
+ Result:129.8
+
+ Path: ['init', 'avx512', '-O3', 32, 624, 544, 992]
+ Result:156.56
+
+ Path: ['init', 'avx512', '-O3', 32, 800, 256, 592]
+ Result:157.05
+
+ Path: ['init', 'sse', '-O3', 32, 704, 816, 256]
+ Result:180.87
+
+ Path: ['init', 'sse', '-O3', 32, 432, 912, 992]
+ Result:181.72

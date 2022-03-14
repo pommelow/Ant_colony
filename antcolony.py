@@ -12,7 +12,7 @@ from config import N1, N2, N3, NUM_ITER
 
 
 from mpl_toolkits.mplot3d import Axes3D
-#from tqdm import tqdm  # Loading bar
+from tqdm import tqdm  # Loading bar
 
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
@@ -248,10 +248,10 @@ if __name__ == "__main__":
     method='elitist'
 
     block_min = 1
-    block_max = 32
-    block_size = 16
+    block_max = 64
+    block_size = 32
 
-    epoch = 2
+    epoch = 10
     cost = []
     pathes = []
 
