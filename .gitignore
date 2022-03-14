@@ -5,7 +5,7 @@ __pypackages__/
 *.db
 .DS_Store
 *.pdf
-
+*.out
 
 # OS generated files #
 ######################

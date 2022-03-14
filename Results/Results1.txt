@@ -1,0 +1,15 @@
+
+ %--------
+ Epoch: 0
+
+ Path: ['init', 'sse', '-Ofast', 8, 32, 16, 32]
+ Result:0.44
+
+ Path: ['init', 'avx', '-O2', 8, 16, 32, 32]
+ Result:0.55
+
+ Path: ['init', 'avx512', '-O2', 1, 32, 16, 32]
+ Result:2.21
+
+ Path: ['init', 'sse', '-Ofast', 1, 16, 16, 32]
+ Result:2.59

@@ -1,4 +1,5 @@
 import itertools
+from mpl_toolkits.mplot3d import Axes3D
 import getopt
 import sys
 import os
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import make_all
+from tqdm import tqdm
 
 from config import N1, N2, N3, NUM_ITER
 
@@ -250,7 +252,7 @@ class IndependentColonies(Communication):
         pathes = [path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
-        ant_colony.update_tau(pathes)
+        ant_colony.update_tau(pathes, method='mmas')
         return pathes, performances
 
     def last_communication(self, best_path, best_cost):
@@ -294,37 +296,51 @@ class ExchangeAll(Communication):
         return best_path, best_cost
 
 
+def getBlockSizes(pathes):
+    b1 = []
+    b2 = []
+    b3 = []
+    for path in pathes:
+        path = dict(path)
+        b1.append(path['b1'])
+        b2.append(path['b2'])
+        b3.append(path['b3'])
+
+    return b1, b2, b3
+
+
 def main():
 
     # Compile at each machine:
 
-    # argv = sys.argv[1:]
-    # if len(argv) < 2:
-    #     str_error = '[error] : incorrect number of parameters\n \
-    #         Usage: python antcolony_mpi.py -m 0 (or --make 0`)'
-    #     raise Exception(str_error)
-    # try:
-    #     opts, _args = getopt.getopt(argv, "m", ['make'])
-    # except getopt.GetoptError as e:
-    #     print('[error] : ', e)
+    argv = sys.argv[1:]
+    if len(argv) < 2:
+        str_error = '[error] : incorrect number of parameters\n \
+            Usage: python antcolony_mpi.py -m 0'
+        raise Exception(str_error)
+    try:
+        opts, _args = getopt.getopt(argv,"m")
+    except getopt.GetoptError as e:
+        print('[error] : ', e)
 
-    # make = int(_args[0])
-    # print('make: ', make)
-    # if make != 0:
-    #     subprocess.call(["python", "make_all.py"])
+
+    debug = True
+    make = int(_args[0])
+    if make != 0:
+        subprocess.call(["python", "make_all.py"])
 
     # Parameters
     from localsearch import Identity
     #Parameters
     alpha = 0.5
     beta = 0
-    rho = 0.2
+    rho = 0.6
     Q = 1
-    nb_ant = 5
-    nb_epochs = 5
+    nb_ant = 50
+    nb_epochs = 100
 
     block_min = 1
-    block_max = 64
+    block_max = 1024
     block_size = 16
 
     levels = [("init", ["init"]),
@@ -347,18 +363,35 @@ def main():
 
     communication.initial_communication()
     to_save = []
+
+    b_pathes = []
+    b_costs = []
+
+    pbar = tqdm(total=nb_epochs, desc="Epoch", position=int(communication.Me))  # Loading bar
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(
             ant_colony, pathes, performances)
-        to_save.append(zip(performances, pathes))
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
     if communication.Me == 0:
         save_results(to_save, 'all')
+
+        if debug :
+            if communication.Me == 0:
+                save_results([zip(performances, pathes)], 'all')
+            b_path, b_cost = communication.last_communication(best_path, best_cost)
+            b_pathes.append(b_path)
+            b_costs.append(b_cost)
+        
+        pbar.update(1)
+            
+    pbar.close() 
+
+
     best_path, best_cost = communication.last_communication(
         best_path, best_cost)
 
@@ -367,5 +400,17 @@ def main():
         print("Best cost: ", best_cost)
 
 
+        b1, b2, b3 = getBlockSizes(b_pathes)
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+        ax.scatter(b1, b2, b3, c=b_costs)
+        plt.savefig("3Dresult.png")
+
+        fig = plt.figure()
+        plt.title("Ant Colony - Solutions over the epochs")
+        plt.xlabel("Epoch")
+        plt.ylabel("Elapsed time")
+        plt.plot(np.arange(nb_epochs), b_costs)
+        plt.savefig("result.png")
 if __name__ == "__main__":
     main()
