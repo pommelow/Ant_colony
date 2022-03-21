@@ -36,7 +36,7 @@ def save_results(lines):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, method, local_search_method):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **kwargs):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
@@ -47,6 +47,8 @@ class AntColony():
         self.graph = self.__init_graph()
         self.method = method
         self.local_search_method = local_search_method
+
+        self.kwargs = kwargs
 
     def __init_graph(self):
         """ Initialize the graph """
@@ -145,9 +147,9 @@ class AntColony():
 
         # MMAS
         if self.method == 'mmas':
-            tau_min = 0.1
-            tau_max = 10.0
-            n_to_update = 5
+            tau_min = self.kwargs["tau min"]
+            tau_max = self.kwargs["tau max"]
+            n_to_update = self.kwargs["n to update"]
             # Evaporation
             for origin, destiny in self.graph.edges(data=False):
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
@@ -242,14 +244,14 @@ class ExchangeAll(Communication):
 
 
 if __name__ == "__main__":
-    import make_all
     from localsearch import Identity
+
     #Parameters
-    alpha = 0.5
-    beta = 0
-    rho = 0.2
+    alpha = 1
+    beta = 1
+    rho = 0.5
     Q = 1
-    nb_ant = 5
+    nb_ant = 25
     nb_epochs = 5
 
     block_min = 16
@@ -263,16 +265,18 @@ if __name__ == "__main__":
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", [15]),
-            ("b1", list(range(block_min-1, block_max+1, block_size))),
-            ("b2", list(range(block_min-1, block_max+1, 1))),
-            ("b3", list(range(block_min-1, block_max+1, 1)))
+            ("b1", list(range(block_min, block_max+1, block_size))),
+            ("b2", list(range(block_min, block_max+1, 1))),
+            ("b3", list(range(block_min, block_max+1, 1)))
             ]
 
     method = "mmas"
+    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
+
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **mmas_args)
 
 
     best_path = None
@@ -281,14 +285,18 @@ if __name__ == "__main__":
     communication.initial_communication()
     
     for _ in range(nb_epochs):
-        communication.on_epochs_begin()
+        communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
-        
+ 
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
     
+        if communication.Me == 0:
+            print("Best path: ", best_path)
+            print("Best cost: ", best_cost)
+
     best_path, best_cost = communication.last_communication(best_path, best_cost)
 
     if communication.Me == 0:

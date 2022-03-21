@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pickle
 from time import time
 from antcolony_mpi import AntColony, IndependentColonies
-from localsearch import Identity, GreedySearch
+from localsearch import Identity, GreedySearch, SimulatedAnnealing
 
 
 alpha=1
@@ -18,9 +18,9 @@ block_max = 256
 block_size = 16
 
 levels = [("init", ["init"]),
-            ("n1", list(range(256, 512, 16))),
-            ("n2", list(range(256, 512, 16))),
-            ("n3", list(range(256, 512, 16))),
+            ("n1", list(range(512, 1024, 16))),
+            ("n2", list(range(512, 1024, 16))),
+            ("n3", list(range(512, 1024, 16))),
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", [15]),
@@ -30,6 +30,7 @@ levels = [("init", ["init"]),
             ]
 
 method = "mmas"
+mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
 local_search_method = Identity()
 
 communication = IndependentColonies()
@@ -38,9 +39,9 @@ communication = IndependentColonies()
 max_time = 1200
 
 
-for _ in range(3):
+for _ in range(1):
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **mmas_args)
 
     best_cost = np.inf
     best_path = []
@@ -51,7 +52,7 @@ for _ in range(3):
     communication.initial_communication()
     while time()-top < max_time:
         if time()-top > 600:
-            ant_colony.local_search_method = GreedySearch(kmax=2)
+            ant_colony.local_search_method = SimulatedAnnealing(kmax=3, t0=1)
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
@@ -68,7 +69,7 @@ for _ in range(3):
     history["best_cost"].append(best_cost)
     history["time"].append(time() - top)
 
-    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity_greedy2"
+    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity_simAnn3_1"
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
 
