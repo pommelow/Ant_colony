@@ -6,6 +6,13 @@ from time import time
 from antcolony_mpi import AntColony, IndependentColonies
 from localsearch import Identity, GreedySearch, SimulatedAnnealing
 
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--t0", type=float)
+parser.add_argument("--kmax", type=int)
+args = parser.parse_args()
 
 alpha=1
 beta=1
@@ -15,18 +22,17 @@ nb_ant=25
 
 block_min = 16
 block_max = 256
-block_size = 16
 
 levels = [("init", ["init"]),
-            ("n1", list(range(512, 1024, 16))),
-            ("n2", list(range(512, 1024, 16))),
-            ("n3", list(range(512, 1024, 16))),
+            ("n1", list(range(512, 4096+1, 128))),
+            ("n2", list(range(512, 4096+1, 128))),
+            ("n3", list(range(512, 4096+1, 128))),
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", [15]),
-            ("b1", list(range(block_min, block_max+1, block_size))),
-            ("b2", list(range(block_min, block_max+1, block_size))),
-            ("b3", list(range(block_min, block_max+1, block_size)))
+            ("num_thread", [16]),
+            ("b1", [0]),
+            ("b2", list(range(block_min, block_max+1, 1))),
+            ("b3", list(range(block_min, block_max+1, 1)))
             ]
 
 method = "mmas"
@@ -52,11 +58,11 @@ for _ in range(1):
     communication.initial_communication()
     while time()-top < max_time:
         if time()-top > 600:
-            ant_colony.local_search_method = SimulatedAnnealing(kmax=3, t0=1)
+            ant_colony.local_search_method = SimulatedAnnealing(kmax=args.kmax, t0=args.t0)
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
-        
+
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
@@ -69,7 +75,7 @@ for _ in range(1):
     history["best_cost"].append(best_cost)
     history["time"].append(time() - top)
 
-    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity_simAnn3_1"
+    folder_name = f"./Results/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity_simAnn{args.kmax}_{args.t0}"
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
 

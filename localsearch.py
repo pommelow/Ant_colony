@@ -18,7 +18,7 @@ def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
         str(n3),
         str(num_thread),
         str(num_iter),
-        str(b1),
+        str(n1),
         str(b2),
         str(b3)
     ],
@@ -125,7 +125,6 @@ class SimulatedAnnealing(LocalSearch):
                 cost = cost_prime
                 neighbors = neighborhood(levels, s)
                 if cost < best_cost:
-                    print(cost, s)
                     best_solution = s
                     best_cost = cost
             t = self.update_t(t)
@@ -170,7 +169,6 @@ class RandomizedTabu(LocalSearch):
                     neighbors = neighborhood(levels, s)
                     neigh_tabu = self.FifoAdd(s, neigh_tabu) 
                     if cost < best_cost:
-                        print(cost, s)
                         best_solution = s
                         best_cost = cost
                 t = self.update_t(t)
