@@ -242,6 +242,7 @@ class ExchangeAll(Communication):
 
 
 if __name__ == "__main__":
+    import make_all
     from localsearch import Identity
     #Parameters
     alpha = 0.5
@@ -261,7 +262,7 @@ if __name__ == "__main__":
             ("n3", list(range(256, 512, 16))),
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", [16]),
+            ("num_thread", [15]),
             ("b1", list(range(block_min-1, block_max+1, block_size))),
             ("b2", list(range(block_min-1, block_max+1, 1))),
             ("b3", list(range(block_min-1, block_max+1, 1)))

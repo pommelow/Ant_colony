@@ -17,7 +17,7 @@ def mean_curve(histories):
 
         for t1, t2, c1, c2 in zip(h["time"], h["time"][1:], h["best_cost"], h["best_cost"][1:]):
             a = (c2 - c1) / (t2 - t1)
-            y_h[np.logical_and(t1 <= x, x < t2)] = c1 + a * (x[np.logical_and(t1 <= x, x < t2)] - t1)
+            y_h[np.logical_and(t1 <= x, x <= t2)] = c1 + a * (x[np.logical_and(t1 <= x, x <= t2)] - t1)
         
         y += y_h
     
@@ -39,6 +39,8 @@ def plot_histories(folder):
     for config in os.listdir(folder):
         histories = get_histories(os.path.join(folder, config))
         x, y = mean_curve(histories)
+        if "identity_greedy" in config:
+            y *= 10/16
         plt.plot(x, y, label=config)
 
     plt.xlabel("Time")
