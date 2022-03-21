@@ -1,5 +1,6 @@
 from cmath import tau
 import os
+from turtle import color
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -8,11 +9,11 @@ from antcolony_mpi import AntColony, IndependentColonies,run
 from localsearch import Identity
 
 def conv_colony():
-    alpha=np.ramdom.uniform(0,10)
-    Q=np.ramdom.uniform(0,10)
+    alpha=round(np.random.uniform(0,10),2)
+    Q=round(np.random.uniform(0,10),2)
     beta=1
-    rho=np.ramdom.uniform(0,10)/10
-    nb_ant=int(np.ramdom.uniform(0,100))
+    rho=round(np.random.uniform(0,10)/10,2)
+    nb_ant=int(np.random.uniform(0,100))
 
     tau_min=0.1
     tau_max=10
@@ -48,8 +49,8 @@ def conv_colony():
 
         best_cost = np.inf
         best_path = []
-        history = {"best_cost": [], "time": []}
-
+        history = {"best_cost": [], "time": [],"epoch":[]}
+        epoch=0
         top = time()
 
         communication.initial_communication()
@@ -57,16 +58,18 @@ def conv_colony():
             communication.on_epoch_begin()
             pathes, performances = ant_colony.epoch()
             pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
-            
+            epoch+=1
             if performances[0] < best_cost:
                 best_path = pathes[0]
                 best_cost = performances[0]
                 history["best_cost"].append(best_cost)
                 history["time"].append(time() - top)
+                history["epoch"].append(epoch)
 
         best_path, best_cost = communication.last_communication(best_path, best_cost)
         history["best_cost"].append(best_cost)
         history["time"].append(time() - top)
+        history["epoch"].append(epoch)
 
         folder_name = f"./Results_conv/{alpha}_{beta}_{rho}_{Q}_{nb_ant}_{method}_identity"
         if not os.path.exists(folder_name):
@@ -99,27 +102,31 @@ def conv_prog(n):
     plt.ylim((0,1))
     plt.show()
 
-if __name__=="__main__":
+"""if __name__=="__main__":
     times_mean=[]
     times_std=[]
     labels=[]
     for i in range(10):
+        print(i)
         t,label=conv_prog(10)
-        times_mean.append(round(np.mean(t)))
-        times_std.append(round(np.std(t)))
-        labels.append(labels)
-
+        times_mean.append(round(np.mean(t),3))
+        times_std.append(100*round(np.std(t),3)/round(np.mean(t),3))
+        labels.append(label)
     fig, ax1 = plt.subplots()
     ax1.scatter(labels,times_mean)
     ax1.set_ylabel("means")
     ax1.set_xlabel("hyperparameters")
+    plt.xticks(fontsize=5)
     ax2 = ax1.twinx()
-    ax1.ylim((0,1))
-    ax2.scatter(labels,times_std)
-    ax2.ylim((0,0.1))
-    ax2.set_ylabel("std")
+    ax1.set_ylim((0,max(times_mean)*1.10))
+    ax2.scatter(labels,times_std,color='r')
+    ax2.set_ylim((0,20))
+    ax2.set_ylabel("std/mean")
     
     fig.tight_layout()
+    print("ok")
     plt.show()
 
-
+"""
+for i in range(10): 
+    conv_colony()
