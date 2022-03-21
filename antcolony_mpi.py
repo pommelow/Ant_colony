@@ -11,29 +11,6 @@ import mpi4py
 from mpi4py import MPI
 
 
-def run(simd, Olevel, num_thread, b1, b2, b3):
-    basename = 'iso3dfd_dev13_cpu'
-    exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
-    p = subprocess.Popen([
-        f"./iso3dfd-st7/bin/{exec_name}",
-        N1,
-        N2,
-        N3,
-        str(num_thread),
-        NUM_ITER,
-        str(b1),
-        str(b2),
-        str(b3)
-    ],
-        stdout=subprocess.PIPE)
-    p.wait()
-    outputs = p.communicate()[0].decode("utf-8").split("\n")
-    time = float(outputs[-4].split(" ")[-2])
-    throughput = float(outputs[-3].split(" ")[-2])
-    flops = float(outputs[-2].split(" ")[-2])
-    return time, throughput, flops
-
-
 def save_results(lines):
     """ Saves the reusults in a .txt file"""
     # print(lines)
@@ -223,7 +200,7 @@ class IndependentColonies(Communication):
         performances.sort()
         ant_colony.update_tau(pathes)
         return pathes, performances
-    
+
     def last_communication(self, best_path, best_cost):
         print(f"Best cost of colony {self.Me}: {best_cost}")
         self.comm.Barrier()
@@ -274,17 +251,20 @@ if __name__ == "__main__":
     nb_ant = 5
     nb_epochs = 5
 
-    block_min = 1
-    block_max = 256
+    block_min = 16
+    block_max = 512
     block_size = 16
 
     levels = [("init", ["init"]),
-            ("simd", ["avx", "avx2", "avx512", "sse"]),
+            ("n1", list(range(256, 512, 16))),
+            ("n2", list(range(256, 512, 16))),
+            ("n3", list(range(256, 512, 16))),
+            ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+            ("num_thread", [16]),
+            ("b1", list(range(block_min-1, block_max+1, block_size))),
+            ("b2", list(range(block_min-1, block_max+1, 1))),
+            ("b3", list(range(block_min-1, block_max+1, 1)))
             ]
 
     method = "mmas"
@@ -300,9 +280,8 @@ if __name__ == "__main__":
     communication.initial_communication()
     
     for _ in range(nb_epochs):
-        communication.on_epoch_begin()
+        communication.on_epochs_begin()
         pathes, performances = ant_colony.epoch()
-        communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
         
         if performances[0] < best_cost:

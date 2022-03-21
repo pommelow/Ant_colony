@@ -8,17 +8,16 @@ from config import N1, N2, N3, NUM_ITER
 
 
 
-def run(simd, Olevel, num_thread, b1, b2, b3):
+def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
-
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{exec_name}",
-        N1,
-        N2,
-        N3,
+        str(n1),
+        str(n2),
+        str(n3),
         str(num_thread),
-        NUM_ITER,
+        str(num_iter),
         str(b1),
         str(b2),
         str(b3)
@@ -33,7 +32,7 @@ def run(simd, Olevel, num_thread, b1, b2, b3):
 
 
 def cost_fn(path):
-    return run(**dict(path[1:]))[0]
+    return -run(**dict(path[1:]))[1]
 
 
 def neighborhood(levels, path, shuffle=True):
