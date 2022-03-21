@@ -24,9 +24,9 @@ block_min = 16
 block_max = 256
 
 levels = [("init", ["init"]),
-            ("n1", list(range(512, 4096+1, 128))),
-            ("n2", list(range(512, 4096+1, 128))),
-            ("n3", list(range(512, 4096+1, 128))),
+            ("n1", list(range(256, 1024+1, 32))),
+            ("n2", list(range(256, 1024+1, 32))),
+            ("n3", list(range(256, 1024+1, 32))),
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", [16]),
@@ -42,7 +42,7 @@ local_search_method = Identity()
 communication = IndependentColonies()
 
 
-max_time = 1200
+max_time = 1800
 
 
 for _ in range(1):
