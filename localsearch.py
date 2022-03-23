@@ -32,7 +32,8 @@ def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
 
 
 def cost_fn(path):
-    return -run(**dict(path[1:]))[1]
+    """ Defines the cost function by choosing the between Time of execution, Throughput or Flops"""
+    return -run(**dict(path[1:]))[1] #Throughput
 
 
 def neighborhood(levels, path, shuffle=True):

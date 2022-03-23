@@ -11,27 +11,40 @@ import mpi4py
 from mpi4py import MPI
 
 
-def save_results(lines):
+def folder_results():
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
-    filename = "Results{}.txt"
+    foldername = "Run{}"
+    # Creates a ./Results folder
     Path("./Results").mkdir(parents=True, exist_ok=True)
-    print('./Results/' + filename.format(counter))
-    while os.path.isfile('./Results/' + filename.format(counter)):
-        counter += 1
-    filename = './Results/' + filename.format(counter)
-    print(filename)
 
+    # Creates a ./Results/Run{} folder
+    while os.path.isdir('./Results/' + foldername.format(counter)):
+        counter += 1
+    Path(str("./Results/"+foldername.format(counter))
+         ).mkdir(parents=True, exist_ok=True)
+    path_dir = "./Results/"+foldername.format(counter)+'/'
+
+    return path_dir
+
+
+def save_results(lines, path_dir):
+    counter = 0
+    filename = "Results{}.txt"
+    # Creates the .txt file in ./Results/Run{}
+    while os.path.isfile(path_dir + filename.format(counter)):
+        counter += 1
+    filename = path_dir + filename.format(counter)
+    # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
-        for epoch, result_epoch in enumerate(lines):
-            f.write('\n Epoch: %s\n' % epoch)
-            for ant in result_epoch:
-                f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                    ant[0][0], ant[0][1], ant[0][2]))
-                f.write('\n Path: %s' % str([item[1]
-                        for item in ant[1]]))
-                f.write('\n %---')
+        for ant_index, ant in enumerate(lines):
+            path_ant = str([item[1] for item in ant[0]])
+            perf_ant = abs(ant[1])
+            f.write('\n Ant %s' % (ant_index))
+            f.write('\n Path: %s' % (path_ant))
+            f.write('\n Throughput: %s' % (perf_ant))
+            f.write('\n')
 
 
 class AntColony():
@@ -161,7 +174,8 @@ class AntColony():
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
                         (1/self.graph[path[i]][path[i+1]]['nu'])
-                    self.graph[path[i]][path[i+1]]['tau'] = min(self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                    self.graph[path[i]][path[i+1]]['tau'] = min(
+                        self.graph[path[i]][path[i+1]]['tau'], tau_max)
                 weight -= 1/n_to_update
 
     def epoch(self):
@@ -198,7 +212,8 @@ class IndependentColonies(Communication):
         pass
 
     def on_epoch_end(self, ant_colony, pathes, performances):
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         ant_colony.update_tau(pathes)
         return pathes, performances
@@ -227,12 +242,13 @@ class ExchangeAll(Communication):
         pathes = self.comm.allreduce(pathes)
         performances = self.comm.allreduce(performances)
         # Sort all results
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         # Update pheromones
         ant_colony.update_tau(pathes)
         return pathes, performances
-    
+
     def last_communication(self, best_path, best_cost):
         for i in range(self.NbP):
             cost = self.comm.bcast(best_cost, root=i)
@@ -246,29 +262,29 @@ class ExchangeAll(Communication):
 if __name__ == "__main__":
     from localsearch import Identity
 
-    #Parameters
+    # Parameters
     alpha = 1
     beta = 1
     rho = 0.5
     Q = 1
-    nb_ant = 25
-    nb_epochs = 5
+    nb_ant = 2
+    nb_epochs = 2
 
     block_min = 16
     block_max = 512
     block_size = 16
 
     levels = [("init", ["init"]),
-            ("n1", list(range(256, 512, 16))),
-            ("n2", list(range(256, 512, 16))),
-            ("n3", list(range(256, 512, 16))),
-            ("simd", ["avx", "avx2", "avx512"]),
-            ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", [15]),
-            ("b1", list(range(block_min, block_max+1, block_size))),
-            ("b2", list(range(block_min, block_max+1, 1))),
-            ("b3", list(range(block_min, block_max+1, 1)))
-            ]
+              ("n1", list(range(256, 512, 16))),
+              ("n2", list(range(256, 512, 16))),
+              ("n3", list(range(256, 512, 16))),
+              ("simd", ["avx", "avx2", "avx512"]),
+              ("Olevel", ["-O2", "-O3", "-Ofast"]),
+              ("num_thread", [15]),
+              ("b1", list(range(block_min, block_max+1, block_size))),
+              ("b2", list(range(block_min, block_max+1, 1))),
+              ("b3", list(range(block_min, block_max+1, 1)))
+              ]
 
     method = "mmas"
     mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
@@ -276,30 +292,36 @@ if __name__ == "__main__":
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **mmas_args)
-
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant,
+                           levels, method, local_search_method, **mmas_args)
 
     best_path = None
     best_cost = np.inf
 
     communication.initial_communication()
-    
+
+    # Path to save files
+    if communication.Me == 0:
+        path_dir = folder_results()
+
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
-        pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
- 
+        pathes, performances = communication.on_epoch_end(
+            ant_colony, pathes, performances)
+
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
-    
+
         if communication.Me == 0:
+            save_results(zip(pathes, performances), path_dir)
             print("Best path: ", best_path)
             print("Best cost: ", best_cost)
 
-    best_path, best_cost = communication.last_communication(best_path, best_cost)
+    best_path, best_cost = communication.last_communication(
+        best_path, best_cost)
 
     if communication.Me == 0:
         print("Best path: ", best_path)
         print("Best cost: ", best_cost)
-
