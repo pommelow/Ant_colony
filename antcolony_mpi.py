@@ -275,25 +275,36 @@ if __name__ == "__main__":
     beta = 0
     rho = 0.5
     Q = 1
-    nb_ant = 25
-    nb_epochs = 50
+    nb_ant = 20
+    nb_epochs = 30
 
     block_min = 16
     block_max = 512
     block_size = 16
 
+    # levels = [("init", ["init"]),
+    #           ("n1", list(range(256, 512, 16))),
+    #           ("n2", list(range(256, 512, 16))),
+    #           ("n3", list(range(256, 512, 16))),
+    #           ("simd", ["avx", "avx2", "avx512"]),
+    #           ("Olevel", ["-O2", "-O3", "-Ofast"]),
+    #           ("num_thread", [15]),
+    #           ("b1", list(range(block_min, block_max+1, block_size))),
+    #           ("b2", list(range(block_min, block_max+1, 1))),
+    #           ("b3", list(range(block_min, block_max+1, 1)))
+    #           ]
+
     levels = [("init", ["init"]),
-              ("n1", list(range(256, 512, 16))),
-              ("n2", list(range(256, 512, 16))),
-              ("n3", list(range(256, 512, 16))),
+              ("n1", [512]),
+              ("n2", [512]),
+              ("n3", [1024]),
               ("simd", ["avx", "avx2", "avx512"]),
               ("Olevel", ["-O2", "-O3", "-Ofast"]),
-              ("num_thread", [15]),
+              ("num_thread", [16]),
               ("b1", list(range(block_min, block_max+1, block_size))),
               ("b2", list(range(block_min, block_max+1, 1))),
               ("b3", list(range(block_min, block_max+1, 1)))
               ]
-
     method = "mmas"
     mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
 
