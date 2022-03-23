@@ -18,20 +18,6 @@ import mpi4py
 from mpi4py import MPI
 
 
-def make(simd="avx2", Olevel="-O3"):
-    os.chdir("./iso3dfd-st7/")
-    try:
-        subprocess.run(["make", "clean"],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception as e:
-        print(e)
-        pass
-    subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    os.chdir("..")
-
-
 def run(simd, Olevel, num_thread, b1, b2, b3):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
@@ -59,12 +45,12 @@ def save_results(lines, type='best'):
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
-    filename = "Results{}.txt"
-    Path("./Results").mkdir(parents=True, exist_ok=True)
+    filename = "Results_4_{}.txt"
+    Path("./Results_4").mkdir(parents=True, exist_ok=True)
     # print('./Results/' + filename.format(counter))
-    while os.path.isfile('./Results/' + filename.format(counter)):
+    while os.path.isfile('./Results_4/' + filename.format(counter)):
         counter += 1
-    filename = './Results/' + filename.format(counter)
+    filename = './Results_4/' + filename.format(counter)
     # print(filename)
     filename_pickle = filename[:-4] + '_pickle.plk'
     with open(filename_pickle, 'wb') as file_data:
@@ -334,8 +320,6 @@ def main():
 
     debug = True
     make = int(_args[0])
-    if make != 0:
-        subprocess.call(["python", "make_all.py"])
 
     # Parameters
     from localsearch import Identity
@@ -344,17 +328,17 @@ def main():
     beta = 0
     rho = 0.6
     Q = 1
-    nb_ant = 1
-    nb_epochs = 1
+    nb_ant = 25
+    nb_epochs = 50
 
     block_min = 1
-    block_max = 32
+    block_max = 256
     block_size = 16
 
     levels = [("init", ["init"]),
               ("simd", ["avx", "avx2", "avx512", "sse"]),
               ("Olevel", ["-O2", "-O3", "-Ofast"]),
-              ("num_thread", [14,15,16,17,29,30,31,32]),
+              ("num_thread", [31,32]),
               ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
               ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
               ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
@@ -374,8 +358,7 @@ def main():
 
     b_pathes = []
     b_costs = []
-    
-    print('Me: ', communication.Me)
+
     if communication.Me == 0:
         pbar = tqdm(total=nb_epochs, desc="Epoch Me: "+str(communication.Me))  # Loading bar
 

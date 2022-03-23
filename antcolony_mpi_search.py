@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from pathlib import Path
+import copy
 
 from config import N1, N2, N3, NUM_ITER
 
-
-from mpl_toolkits.mplot3d import Axes3D
-from tqdm import tqdm  # Loading bar
+import mpi4py
+from mpi4py import MPI
 
 def make(simd="avx2", Olevel="-O3"):
     os.chdir("./iso3dfd-st7/")
@@ -77,13 +77,12 @@ def save_results(lines):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels,method, local_search_method):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, local_search_method):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
         self.Q = Q
         self.nb_ant = nb_ant
-        self.method=method
 
         self.levels = levels
         self.graph = self.__init_graph()
@@ -137,10 +136,10 @@ class AntColony():
             path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
         return path
 
-    def update_tau(self, pathes):
+    def update_tau(self, pathes, method='basic'):
         """ Updates the amount of pheromone on each edge based on the method choosen """
-        method=self.method
         # Basic Algorithm
+        print('update_tau: ', pathes)
         if method == 'basic':
             # Evaporation:
             for origin, destiny in self.graph.edges(data=False):
@@ -177,7 +176,7 @@ class AntColony():
             extra_phero = 1  # If extra_phero = 1, the ant adds 2 times more than other ants
             for i in range(len(pathes[0])-1):  # Reward best ant
                 self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] += extra_phero * \
-                    self.Q/(1/self.graph[pathes[0][i]][pathes[0][i+1]]['nu'])
+                    self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
 
             # Adding pheromone
             for path in pathes:
@@ -194,10 +193,10 @@ class AntColony():
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
                 self.graph[origin][destiny]['tau'] = max(update, tau_min)
 
-            for i in range(len(pathes[0])-1):  # Only best at adds pheromone
-                increment = self.Q/(1/self.graph[pathes[0][i]][pathes[0][i+1]]['nu'])
-                self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] = min(
-                    self.graph[pathes[0][i]][pathes[0][i+1]]['tau'] + increment, tau_max)
+            for i in range(len(pathes[0]-1)):  # Only best at adds pheromone
+                increment = self.Q/(1/self.graph[path[i]][path[i+1]]['nu'])
+                self.graph[path[i]][path[i+1]]['tau'] = min(
+                    self.graph[path[i]][path[i+1]]['tau'] + increment, tau_max)
 
     def epoch(self):
         # pathes and perfornamces of all ants of that generation
@@ -218,79 +217,173 @@ class AntColony():
         pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
 
+
         print(f"Best path: {[e[1] for e in pathes[0]]}\nTime to execute: {performances[0]}")
 
-        # Update pheromones
-        self.update_tau(pathes)
+        self.update_tau(pathes, method='basic')
 
         return pathes, performances
 
 
+class IndependentColonies():
+    def initial_communication(self):
+        pass
 
-def getBlockSizes(pathes):
-    b1 = []
-    b2 = []
-    b3 = []
-    for path in pathes:
-        path = dict(path)
-        b1.append(path['b1'])
-        b2.append(path['b2'])
-        b3.append(path['b3'])
+    def on_epoch_begin(self):
+        pass
 
-    return b1, b2, b3
+    def on_epoch_end(self, ant_colony, pathes, performances):
+        ant_colony.update_tau(pathes, method='basic')
+
+
+
+class Communication():
+    def __init__(self):
+        # MPI information extraction
+        self.comm = MPI.COMM_WORLD
+        self.NbP = self.comm.Get_size()
+        self.Me = self.comm.Get_rank()
+
+
+def divide_blocks(total_levels, block, process, NbP):
+    total_levels = dict(total_levels)
+    b_size = len(total_levels['b1']) // NbP
+    return [val for val in total_levels[block][process*b_size:process*b_size + b_size]] 
+
+class SearchSpaceDivision(Communication):
+    
+    def __init__(self, local_search=None, initial_levels=None, ant_colony_params=None, epochs=1):
+        super().__init__()
+        
+
+        if not local_search:
+            self.local_search_method = GreedySearch(kmax=1)
+        else:
+            self.local_search_method = local_search
+
+        if not ant_colony_params:
+            self.params = {
+                'alpha': 0.5,
+                'beta': 0,
+                'rho': 0.2,
+                'Q': 1,
+                'nb_ant': 1,
+                'block_min': 1,
+                'block_max': 32,
+                'block_size': 16
+            }
+        else:
+            self.params = ant_colony_params
+
+        if not initial_levels:
+            block_min = self.params['block_min']
+            block_max = self.params['block_max']
+            block_size = self.params['block_size']
+
+            self.total_levels = [["init", ["init"]],
+            ["simd", ["avx", "avx2", "avx512", "sse"]],
+            ["Olevel", ["-O2", "-O3", "-Ofast"]],
+            ["num_thread", list([2**j for j in range(0, 6)])],
+            ["b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))],
+            ["b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))],
+            ["b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))]
+            ]
+        else: 
+            self.total_levels = initial_levels
+        
+
+
+    def on_epoch_begin(self):
+        self.levels = dict(copy.copy(self.total_levels))
+        self.levels['b1'] = divide_blocks(self.total_levels, 'b1', self.Me, self.NbP)
+        self.levels['b2'] = divide_blocks(self.total_levels ,'b2', self.Me, self.NbP)
+        self.levels['b3'] = divide_blocks(self.total_levels, 'b3', self.Me, self.NbP)
+
+        input_levels = []
+        for keys, values in self.levels.items():
+            input_levels.append((keys, values))
+
+        print('Me: ', self.Me, ' levels: ', input_levels) 
+
+        ant_colony_params = {
+            'alpha': self.params['alpha'],
+            'beta': self.params['beta'],
+            'rho': self.params['rho'],
+            'Q': self.params['Q'],
+            'nb_ant': self.params['nb_ant'],
+            'levels': input_levels,
+            'local_search_method': self.local_search_method
+        }
+
+        return AntColony(**ant_colony_params)
+
+    def on_epoch_end(self, ant_colony, pathes, performances):
+
+        print('on_epoch_end pathes: ', pathes)
+        pathes = self.comm.allreduce(pathes)
+        print('all_reduced pathes: ', pathes)
+        performances = self.comm.allreduce(performances)
+
+        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        performances.sort()
+
+        print('pathes: ', pathes)
+        ant_colony.update_tau(pathes, method='mmas')
+
+
+        self.comm.Barrier()
+        for i in range(self.NbP):
+            cost = self.comm.bcast(best_cost, root=i)
+            if cost < best_cost:
+                best_cost = cost
+                best = i
+
+        self.total_levels[-3][1] = divide_blocks(self.total_levels, 'b1', best, self.NbP)
+        self.total_levels[-2][1] = divide_blocks(self.total_levels ,'b2', best, self.NbP)
+        self.total_levels[-1][1] = divide_blocks(self.total_levels, 'b3', best, self.NbP)
+
+        return pathes, performances
+    
+    def last_communication(self, best_path, best_cost):
+        print(f"Best cost of colony {self.Me}: {best_cost}")
+        self.comm.Barrier()
+        for i in range(self.NbP):
+            cost = self.comm.bcast(best_cost, root=i)
+            path = self.comm.bcast(best_path, root=i)
+            if cost < best_cost:
+                best_cost = cost
+                best_path = path
+        return best_path, best_cost
+
+def main():
+
+    parallel_model = SearchSpaceDivision()
+
+
+    best_cost = np.inf 
+    nb_epochs = 2
+    for _ in range(nb_epochs):
+
+        antColony = parallel_model.on_epoch_begin() 
+
+        epochs = 2
+        pathes = []
+        for __ in range(epochs):
+            path, performances = antColony.epoch()
+            pathes.append(path)
+
+        parallel_model.comm.Barrier()
+        pathes, performances = parallel_model.on_epoch_end(antColony, pathes, performances)
+        
+        if performances[0] < best_cost:
+            best_path = pathes[0]
+            best_cost = performances[0]
+    
+    best_path, best_cost = parallel_model.last_communication(best_path, best_cost)
+
+    if parallel_model.Me == 0:
+        print("Best path: ", best_path)
+        print("Best cost: ", best_cost)
 
 if __name__ == "__main__":
-    alpha = 0.5
-    beta = 0
-    rho = 0.2
-    Q = 1
-    nb_ant = 2
-    method='elitist'
-
-    block_min = 1
-    block_max = 64
-    block_size = 32
-
-    epoch = 10
-    cost = []
-    pathes = []
-
-    levels = [("init", ["init"]),
-            ("simd", ["avx", "avx2", "avx512", "sse"]),
-            ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
-            ]
-
-
-    local_search_method = GreedySearch(kmax=1)
-
-    # print(levels[3])
-
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels,method, local_search_method)
-
-    pbar = tqdm(total=epoch, desc="Epoch")  # Loading bar
-
-    for k in range(epoch):
-        path, performances = ant_colony.epoch()
-        cost.append(performances[0])
-        pathes.append(path[0])
-        pbar.update(1)
-
-    pbar.close() 
-    b1, b2, b3 = getBlockSizes(pathes)
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-    ax.scatter(b1, b2, b3, c=cost)
-    plt.savefig("3Dresult.png")
-
-    fig = plt.figure()
-    plt.title("Ant Colony - Solutions over the epochs")
-    plt.xlabel("Epoch")
-    plt.ylabel("Elapsed time")
-    plt.plot(np.arange(epoch), cost)
-    plt.savefig("result.png")
-
-    
+   main() 
