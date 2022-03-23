@@ -279,7 +279,7 @@ if __name__ == "__main__":
     nb_epochs = 30
 
     block_min = 16
-    block_max = 512
+    block_max = 256
     block_size = 16
 
     # levels = [("init", ["init"]),

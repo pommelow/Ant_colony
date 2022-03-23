@@ -1,0 +1,51 @@
+
+ %--------
+ Epoch: 0
+
+ Path: ['init', 'avx', '-Ofast', 8, 32, 16, 32]
+ Result:0.66
+
+ Path: ['init', 'sse', '-O2', 8, 32, 16, 32]
+ Result:0.73
+
+ Path: ['init', 'avx', '-Ofast', 8, 16, 32, 16]
+ Result:0.81
+
+ Path: ['init', 'sse', '-Ofast', 16, 16, 32, 16]
+ Result:0.82
+
+ Path: ['init', 'avx512', '-O3', 32, 32, 16, 32]
+ Result:0.83
+
+ Path: ['init', 'avx512', '-O2', 8, 16, 32, 16]
+ Result:0.83
+
+ Path: ['init', 'avx512', '-O2', 4, 32, 16, 32]
+ Result:0.85
+
+ Path: ['init', 'avx', '-O3', 8, 16, 32, 32]
+ Result:0.86
+
+ Path: ['init', 'avx512', '-O2', 32, 16, 16, 32]
+ Result:0.89
+
+ Path: ['init', 'avx2', '-O2', 32, 16, 32, 16]
+ Result:0.93
+
+ Path: ['init', 'avx512', '-O2', 4, 16, 32, 16]
+ Result:1.05
+
+ Path: ['init', 'avx', '-O3', 2, 32, 16, 32]
+ Result:1.51
+
+ Path: ['init', 'avx', '-Ofast', 2, 16, 16, 16]
+ Result:1.79
+
+ Path: ['init', 'avx', '-O3', 2, 16, 32, 32]
+ Result:1.92
+
+ Path: ['init', 'avx', '-O2', 1, 32, 16, 32]
+ Result:2.74
+
+ Path: ['init', 'avx', '-O3', 1, 16, 16, 32]
+ Result:3.28

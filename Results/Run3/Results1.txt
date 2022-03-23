@@ -1,0 +1,16 @@
+
+ Ant 0
+ Path: ['init', 432, 448, 464, 'avx2', '-Ofast', 15, 464, 73, 443]
+ Throughput: 378.28
+
+ Ant 1
+ Path: ['init', 480, 416, 400, 'avx', '-O3', 15, 272, 371, 210]
+ Throughput: 156.28
+
+ Ant 2
+ Path: ['init', 464, 368, 384, 'avx2', '-O2', 15, 224, 450, 280]
+ Throughput: 130.71
+
+ Ant 3
+ Path: ['init', 336, 400, 448, 'avx2', '-O3', 15, 496, 468, 414]
+ Throughput: 98.6
