@@ -10,6 +10,8 @@ from config import N1, N2, N3, NUM_ITER
 import mpi4py
 from mpi4py import MPI
 
+import pickle
+
 
 def folder_results():
     """ Saves the reusults in a .txt file"""
@@ -32,10 +34,13 @@ def folder_results():
 def save_results(lines, path_dir):
     counter = 0
     filename = "Results{}.txt"
+    filename_pickle = "Results{}_pickle.pkl"
     # Creates the .txt file in ./Results/Run{}
     while os.path.isfile(path_dir + filename.format(counter)):
         counter += 1
     filename = path_dir + filename.format(counter)
+    filename_pickle = path_dir + filename_pickle.format(counter)
+
     # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
         for ant_index, ant in enumerate(lines):
@@ -45,6 +50,9 @@ def save_results(lines, path_dir):
             f.write('\n Path: %s' % (path_ant))
             f.write('\n Throughput: %s' % (perf_ant))
             f.write('\n')
+
+    with open(filename_pickle, 'wb') as f:
+        pickle.dump(lines, f)
 
 
 class AntColony():
@@ -264,11 +272,11 @@ if __name__ == "__main__":
 
     # Parameters
     alpha = 1
-    beta = 1
+    beta = 0
     rho = 0.5
     Q = 1
-    nb_ant = 2
-    nb_epochs = 2
+    nb_ant = 25
+    nb_epochs = 50
 
     block_min = 16
     block_max = 512
