@@ -18,26 +18,9 @@ import mpi4py
 from mpi4py import MPI
 
 
-def make(simd="avx2", Olevel="-O3"):
-    os.chdir("./iso3dfd-st7/")
-    try:
-        subprocess.run(["make", "clean"],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception as e:
-        print(e)
-        pass
-    subprocess.run(["make", "build", f"simd={simd}", f" Olevel={Olevel} "],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    os.chdir("..")
-
-
 def run(simd, Olevel, num_thread, b1, b2, b3):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
-    # filename = os.listdir("./iso3dfd-st7/bin/")[0]
-    # print(filename)
-    # print(n1, n2, num_thread, iteration, b1, b2, b3)
     p = subprocess.Popen([
         f"./iso3dfd-st7/bin/{exec_name}",
         N1,
@@ -62,33 +45,17 @@ def save_results(lines, type='best'):
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
-    foldername = "Run{}"
-    # Creates a ./Results folder
-    Path("./Results").mkdir(parents=True, exist_ok=True)
-
-    # Creates a ./Results/Run{} folder
-    while os.path.isdir('./Results/' + foldername.format(counter)):
+    filename = "Results_4_{}.txt"
+    Path("./Results_4").mkdir(parents=True, exist_ok=True)
+    # print('./Results/' + filename.format(counter))
+    while os.path.isfile('./Results_4/' + filename.format(counter)):
         counter += 1
-    filename = './Results/' + filename.format(counter)
+    filename = './Results_4/' + filename.format(counter)
     # print(filename)
     filename_pickle = filename[:-4] + '_pickle.plk'
     with open(filename_pickle, 'wb') as file_data:
         pickle.dump(lines, file_data)
 
-    return path_dir
-
-
-def save_results(lines, path_dir):
-    counter = 0
-    filename = "Results{}.txt"
-    filename_pickle = "Results{}_pickle.pkl"
-    # Creates the .txt file in ./Results/Run{}
-    while os.path.isfile(path_dir + filename.format(counter)):
-        counter += 1
-    filename = path_dir + filename.format(counter)
-    filename_pickle = path_dir + filename_pickle.format(counter)
-
-    # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
         for epoch, result_epoch in enumerate(lines):
             f.write('\n %--------')
@@ -112,7 +79,7 @@ def save_results(lines, path_dir):
 
 class AntColony():
 
-    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, method, local_search_method, **kwargs):
+    def __init__(self, alpha, beta, rho, Q, nb_ant, levels, method, local_search_method):
         self.alpha = alpha
         self.beta = beta
         self.rho = rho
@@ -123,8 +90,6 @@ class AntColony():
         self.graph = self.__init_graph()
         self.method = method
         self.local_search_method = local_search_method
-
-        self.kwargs = kwargs
 
     def __init_graph(self):
         """ Initialize the graph """
@@ -223,9 +188,9 @@ class AntColony():
 
         # MMAS
         if self.method == 'mmas':
-            tau_min = self.kwargs["tau min"]
-            tau_max = self.kwargs["tau max"]
-            n_to_update = self.kwargs["n to update"]
+            tau_min = 0.1
+            tau_max = 10.0
+            n_to_update = 5
             # Evaporation
             for origin, destiny in self.graph.edges(data=False):
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
@@ -237,8 +202,7 @@ class AntColony():
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
                         (1/self.graph[path[i]][path[i+1]]['nu'])
-                    self.graph[path[i]][path[i+1]]['tau'] = min(
-                        self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                    self.graph[path[i]][path[i+1]]['tau'] = min(self.graph[path[i]][path[i+1]]['tau'], tau_max)
                 weight -= 1/n_to_update
 
     def epoch(self):
@@ -356,8 +320,6 @@ def main():
 
     debug = True
     make = int(_args[0])
-    if make != 0:
-        subprocess.call(["python", "make_all.py"])
 
     # Parameters
     from localsearch import Identity
@@ -366,44 +328,27 @@ def main():
     beta = 0
     rho = 0.6
     Q = 1
-    nb_ant = 1
-    nb_epochs = 1
+    nb_ant = 25
+    nb_epochs = 50
 
     block_min = 1
-    block_max = 32
+    block_max = 256
     block_size = 16
 
-    # levels = [("init", ["init"]),
-    #           ("n1", list(range(256, 512, 16))),
-    #           ("n2", list(range(256, 512, 16))),
-    #           ("n3", list(range(256, 512, 16))),
-    #           ("simd", ["avx", "avx2", "avx512"]),
-    #           ("Olevel", ["-O2", "-O3", "-Ofast"]),
-    #           ("num_thread", [15]),
-    #           ("b1", list(range(block_min, block_max+1, block_size))),
-    #           ("b2", list(range(block_min, block_max+1, 1))),
-    #           ("b3", list(range(block_min, block_max+1, 1)))
-    #           ]
-
     levels = [("init", ["init"]),
-              ("n1", [512]),
-              ("n2", [512]),
-              ("n3", [1024]),
-              ("simd", ["avx", "avx2", "avx512"]),
+              ("simd", ["avx", "avx2", "avx512", "sse"]),
               ("Olevel", ["-O2", "-O3", "-Ofast"]),
-              ("num_thread", [16]),
+              ("num_thread", [31,32]),
               ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
               ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
               ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
               ]
-    method = "mmas"
-    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
 
+    method = "mmas"
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant,
-                           levels, method, local_search_method, **mmas_args)
+    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant, levels, method, local_search_method)
 
     best_path = None
     best_cost = np.inf
@@ -413,15 +358,14 @@ def main():
 
     b_pathes = []
     b_costs = []
-    
-    print('Me: ', communication.Me)
+
     if communication.Me == 0:
         pbar = tqdm(total=nb_epochs, desc="Epoch Me: "+str(communication.Me))  # Loading bar
 
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
-        communication.Barrier()
+        communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(
             ant_colony, pathes, performances)
         if performances[0] < best_cost:
