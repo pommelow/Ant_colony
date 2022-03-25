@@ -374,7 +374,8 @@ def main(args):
         path_dir = folder_results()
     
     print('='*20)
-    print('Me: ', communication.Me)
+    print('Me: ', communication.Me, 'hostname: ', os.uname()[1])
+    
     print('Running with the following parameters: ', args)
     print('='*20)
     if communication.Me == 0:
