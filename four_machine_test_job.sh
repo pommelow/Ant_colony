@@ -7,6 +7,6 @@
 #SBATCH --exclusive
 #SBATCH --ntasks 128
 
-mpirun -np 4 --map-by ppr:1:node --bind-to socket  python /usr/users/cpust75/cpust75_6/Ant_colony/antcolony_mpi.py --config four_machine_test.json
+mpirun -np 4 -ppn 1 --bind-to socket python /usr/users/cpust75/cpust75_6/Ant_colony/antcolony_mpi.py --config four_machine_test.json
 
 
