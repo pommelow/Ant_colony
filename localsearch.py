@@ -18,7 +18,7 @@ def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
         str(n3),
         str(num_thread),
         str(num_iter),
-        str(n1),
+        str(b1),
         str(b2),
         str(b3)
     ],

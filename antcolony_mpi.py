@@ -113,7 +113,7 @@ class AntColony():
 
         # ASrank
         if self.method == 'asrank':
-            n_to_update = 5
+            n_to_update = self.kwargs["nb_to_update"]
             # Evaporation:
             for origin, destiny, edge in self.graph.edges(data=True):
                 self.graph[origin][destiny]['tau'] = (
@@ -147,9 +147,9 @@ class AntColony():
 
         # MMAS
         if self.method == 'mmas':
-            tau_min = self.kwargs["tau min"]
-            tau_max = self.kwargs["tau max"]
-            n_to_update = self.kwargs["n to update"]
+            tau_min = self.kwargs["tau_min"]
+            tau_max = self.kwargs["tau_max"]
+            n_to_update = self.kwargs["nb_to_update"]
             # Evaporation
             for origin, destiny in self.graph.edges(data=False):
                 update = (1-self.rho)*self.graph[origin][destiny]['tau']
@@ -259,19 +259,19 @@ if __name__ == "__main__":
     block_size = 16
 
     levels = [("init", ["init"]),
-            ("n1", list(range(256, 512, 16))),
-            ("n2", list(range(256, 512, 16))),
-            ("n3", list(range(256, 512, 16))),
-            ("simd", ["avx", "avx2", "avx512"]),
-            ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", [15]),
+            ("Olevel", ["-O2", "-O3", "-Ofast"]),
+            ("simd", ["avx", "avx2", "avx512"]),
+            ("n1", list(range(256, 512, 16))),
             ("b1", list(range(block_min, block_max+1, block_size))),
+            ("n2", list(range(256, 512, 16))),
             ("b2", list(range(block_min, block_max+1, 1))),
+            ("n3", list(range(256, 512, 16))),
             ("b3", list(range(block_min, block_max+1, 1)))
             ]
 
     method = "mmas"
-    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
+    mmas_args = {"tau_min": 0.05, "tau_max": 10, "nb_to_update": 12}
 
     local_search_method = Identity()
     communication = ExchangeAll()
