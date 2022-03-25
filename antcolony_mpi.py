@@ -1,4 +1,5 @@
 import itertools
+import json
 import pickle
 from mpl_toolkits.mplot3d import Axes3D
 import getopt
@@ -329,51 +330,14 @@ def getBlockSizes(pathes):
     return b1, b2, b3
 
 
-def main():
-
-    # Compile at each machine:
-
-    argv = sys.argv[1:]
-    if len(argv) < 2:
-        str_error = '[error] : incorrect number of parameters\n \
-            Usage: python antcolony_mpi.py -m 0'
-        raise Exception(str_error)
-    try:
-        opts, _args = getopt.getopt(argv,"m")
-    except getopt.GetoptError as e:
-        print('[error] : ', e)
-
-
-    debug = True
-    make = int(_args[0])
-    if make != 0:
-        subprocess.call(["python", "make_all.py"])
+def main(args):
 
     # Parameters
     from localsearch import Identity
     #Parameters
-    alpha = 1
-    beta = 0
-    rho = 0.6
-    Q = 1
-    nb_ant = 1
-    nb_epochs = 1
-
-    block_min = 1
-    block_max = 32
-    block_size = 16
-
-    # levels = [("init", ["init"]),
-    #           ("n1", list(range(256, 512, 16))),
-    #           ("n2", list(range(256, 512, 16))),
-    #           ("n3", list(range(256, 512, 16))),
-    #           ("simd", ["avx", "avx2", "avx512"]),
-    #           ("Olevel", ["-O2", "-O3", "-Ofast"]),
-    #           ("num_thread", [15]),
-    #           ("b1", list(range(block_min, block_max+1, block_size))),
-    #           ("b2", list(range(block_min, block_max+1, 1))),
-    #           ("b3", list(range(block_min, block_max+1, 1)))
-    #           ]
+    block_min = args['block_min'] 
+    block_max = args['block_max'] 
+    block_size = args['block_size'] 
 
     levels = [("init", ["init"]),
               ("n1", [512]),
@@ -392,7 +356,9 @@ def main():
     local_search_method = Identity()
     communication = ExchangeAll()
 
-    ant_colony = AntColony(alpha, beta, rho, Q, nb_ant,
+    alpha = args['alpha']
+
+    ant_colony = AntColony(args['alpha'], args['beta'], args['rho'], args['Q'], args['nb_ant'],
                            levels, method, local_search_method, **mmas_args)
 
     best_path = None
@@ -406,12 +372,15 @@ def main():
     # Path to save files
     if communication.Me == 0:
         path_dir = folder_results()
- 
+    
+    print('='*20)
     print('Me: ', communication.Me)
+    print('Running with the following parameters: ', args)
+    print('='*20)
     if communication.Me == 0:
-        pbar = tqdm(total=nb_epochs, desc="Epoch Me: "+str(communication.Me))  # Loading bar
+        pbar = tqdm(total=args['nb_epochs'], desc="Epoch Me: "+str(communication.Me))  # Loading bar
 
-    for _ in range(nb_epochs):
+    for _ in range(args['nb_epochs']):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         communication.comm.Barrier()
@@ -429,4 +398,21 @@ def main():
         pbar.close() 
 
 if __name__ == "__main__":
-    main()
+    argv = sys.argv[1:]
+    if len(argv) < 2:
+        str_error = '[error] : incorrect number of parameters\n \
+            Usage: python antcolony_mpi.py -c training_config.json (or --config training_config.json)'
+        raise Exception(str_error)
+    try:
+        opts, _args = getopt.getopt(argv,"c:", ['config='])
+    except getopt.GetoptError as e:
+        print('[error] : ', e)
+
+    for opt, arg in opts:
+        if opt in ['-c', '--config']:
+            config_path = arg
+
+    with open(config_path, 'r') as config_file:
+        args = json.load(config_file)
+    
+    main(args)

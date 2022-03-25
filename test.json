@@ -1,0 +1,11 @@
+{
+    "alpha": 1,
+    "beta": 0,
+    "rho": 0.6,
+    "Q": 1,
+    "nb_ant": 1,
+    "nb_epochs": 1,
+    "block_min": 1,
+    "block_max": 32,
+    "block_size": 16
+}
