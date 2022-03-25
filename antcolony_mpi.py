@@ -57,8 +57,7 @@ def run(simd, Olevel, num_thread, b1, b2, b3):
     flops = float(outputs[-2].split(" ")[-2])
     return time, throughput, flops
 
-
-def save_results(lines, type='best'):
+def folder_results():
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
@@ -69,11 +68,9 @@ def save_results(lines, type='best'):
     # Creates a ./Results/Run{} folder
     while os.path.isdir('./Results/' + foldername.format(counter)):
         counter += 1
-    filename = './Results/' + filename.format(counter)
-    # print(filename)
-    filename_pickle = filename[:-4] + '_pickle.plk'
-    with open(filename_pickle, 'wb') as file_data:
-        pickle.dump(lines, file_data)
+    Path(str("./Results/"+foldername.format(counter))
+         ).mkdir(parents=True, exist_ok=True)
+    path_dir = "./Results/"+foldername.format(counter)+'/'
 
     return path_dir
 
@@ -90,24 +87,17 @@ def save_results(lines, path_dir):
 
     # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
-        for epoch, result_epoch in enumerate(lines):
-            f.write('\n %--------')
-            f.write('\n Epoch: %s\n' % epoch)
-            if type == 'best':
-                best = list(result_epoch)[0]
-                f.write('\n Path: %s' % str([item[1]
-                                             for item in best[1]]))
-                f.write('\n Result: %s' % str(best[0]))
-            else:
-                for ant in result_epoch:
-                    # f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                    #     ant[0][0], ant[0][1], ant[0][2]))
-                    f.write('\n Path: %s' % str([item[1]
-                            for item in ant[1]]))
-                    f.write('\n Result:' + str(ant[0]))
-                    # f.write('\n Path: %s' % str([item[1]
-                    #         for item in ant[1]]))
-                    f.write('\n')
+        for ant_index, ant in enumerate(lines):
+            path_ant = str([item[1] for item in ant[0]])
+            perf_ant = abs(ant[1])
+            f.write('\n Ant %s' % (ant_index))
+            f.write('\n Path: %s' % (path_ant))
+            f.write('\n Throughput: %s' % (perf_ant))
+            f.write('\n')
+
+    with open(filename_pickle, 'wb') as f:
+        pickle.dump(lines, f)
+
 
 
 class AntColony():
@@ -413,7 +403,10 @@ def main():
 
     b_pathes = []
     b_costs = []
-    
+    # Path to save files
+    if communication.Me == 0:
+        path_dir = folder_results()
+ 
     print('Me: ', communication.Me)
     if communication.Me == 0:
         pbar = tqdm(total=nb_epochs, desc="Epoch Me: "+str(communication.Me))  # Loading bar
@@ -421,7 +414,7 @@ def main():
     for _ in range(nb_epochs):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
-        communication.Barrier()
+        communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(
             ant_colony, pathes, performances)
         if performances[0] < best_cost:
@@ -429,32 +422,11 @@ def main():
             best_cost = performances[0]
 
         if communication.Me == 0:
-            save_results([zip(performances, pathes)], 'all')
+            save_results(zip(pathes, performances), path_dir)
             pbar.update(1)
 
     if communication.Me == 0:    
         pbar.close() 
 
-
-    #best_path, best_cost = communication.last_communication(
-        #best_path, best_cost)
-
-    #if communication.Me == 0:
-        #print("Best path: ", best_path)
-        #print("Best cost: ", best_cost)
-
-
-        #b1, b2, b3 = getBlockSizes(b_pathes)
-        #fig = plt.figure()
-        #ax = fig.add_subplot(1, 1, 1, projection='3d')
-        #ax.scatter(b1, b2, b3, c=b_costs)
-        #plt.savefig("3Dresult.png")
-
-        #fig = plt.figure()
-        #plt.title("Ant Colony - Solutions over the epochs")
-        #plt.xlabel("Epoch")
-        #plt.ylabel("Elapsed time")
-        #plt.plot(np.arange(nb_epochs), b_costs)
-        #plt.savefig("result.png")
 if __name__ == "__main__":
     main()
