@@ -12,7 +12,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--alpha", type=float, default=1, help="Control the pheromons")
 parser.add_argument("--beta", type=float, default=1, help="Not used")
-parser.add_argument("--rho", type=float, default=0.5, help="Control the pheromons evaporation")
+parser.add_argument("--rho", type=float, default=0.1, help="Control the pheromons evaporation")
 parser.add_argument("--Q", type=float, default=1, help="Control the reward of the best ants")
 parser.add_argument("--nb_ant", type=int, default=25, help="Number of ants in each generation")
 parser.add_argument("--method", type=str, default="mmas", choices=["basic", "asrank", "elitist", "mmas"], help="")
