@@ -21,10 +21,11 @@ parser.add_argument("--max_time", type=float, default=1800, help="maximum execut
 
 # method parameters
 parser.add_argument("--nb-to-update", type=int, default=12, help="nb of ants to update in asrank ans mmas methods")
-parser.add_argument("--tau_min", type=float, default=0.05, help="tau min in mmas")
+parser.add_argument("--tau_min", type=float, default=0.5, help="tau min in mmas")
 parser.add_argument("--tau_max", type=float, default=10, help="tau max in mmas")
 
 # local search parameters
+parser.add_argument("--time_local", type=float, default=600, help="time before local search")
 parser.add_argument("--kmax", type=float, default=3, help="max iteration for each local search method")
 parser.add_argument("--t0", type=float, default=1, help="initial temperature in simulated annealing")
 parser.add_argument("--t-decay", type=float, default=0.98, help="temperature decay in simulated annealing")
@@ -47,7 +48,7 @@ levels = [("init", ["init"]),
             ("simd", ["avx", "avx2", "avx512"]),
             ("Olevel", ["-O2", "-O3", "-Ofast"]),
             ("num_thread", [16]),
-            ("b1", list(range(block_min, block_max+1, 16))),
+            ("b1", [0]),  # list(range(block_min, block_max+1, 16))),
             ("b2", list(range(block_min, block_max+1, 1))),
             ("b3", list(range(block_min, block_max+1, 1)))
             ]
@@ -64,13 +65,11 @@ elif args.local_search == "tabu":
 communication = IndependentColonies()
 
 
-max_time = args.max_time
-
 method_args = {"nb_to_update": args.nb_to_update, "tau_min": args.tau_min, "tau_max": args.tau_max}
 
 for _ in range(1):
 
-    ant_colony = AntColony(args.alpha, args.beta, args.rho, args.Q, args.nb_ant, levels, args.method, local_search_method, **method_args)
+    ant_colony = AntColony(args.alpha, args.beta, args.rho, args.Q, args.nb_ant, levels, args.method, Identity(), **method_args)
 
     best_cost = np.inf
     best_path = []
@@ -79,9 +78,9 @@ for _ in range(1):
     top = time()
 
     communication.initial_communication()
-    while time()-top < max_time:
-        if time()-top > 600:
-            ant_colony.local_search_method = SimulatedAnnealing(kmax=args.kmax, t0=args.t0)
+    while time()-top < args.max_time:
+        if time()-top > args.time_local:
+            ant_colony.local_search_method = local_search_method
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
