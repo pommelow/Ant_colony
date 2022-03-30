@@ -276,7 +276,7 @@ class AntColony():
                         self.graph[path[i]][path[i+1]]['tau'], tau_max)
                 weight -= 1/n_to_update
 
-        if self.method == 'mmas_v2':
+        if self.method == 'mmas':
             tau_min = self.kwargs["tau min"]
             tau_max = self.kwargs["tau max"]
             n_to_update = self.kwargs["n to update"]
