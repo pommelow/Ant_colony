@@ -41,6 +41,7 @@ print(args)
 block_min = 16
 block_max = 256
 
+#Graph of the the Ant colony
 levels = [("init", ["init"]),
             ("n1", list(range(256, 1024+1, 32))),
             ("n2", list(range(256, 1024+1, 32))),
@@ -53,6 +54,7 @@ levels = [("init", ["init"]),
             ("b3", list(range(128, 256+1, 1)))
             ]
 
+# choose the local search method
 if args.local_search == "identity":
     local_search_method = Identity()
 elif args.local_search == "greedy":
@@ -67,8 +69,11 @@ communication = IndependentColonies()
 
 method_args = {"nb_to_update": args.nb_to_update, "tau_min": args.tau_min, "tau_max": args.tau_max}
 
+#Launch _ colony x times to reduce variance in results
+
 for _ in range(1):
 
+    #creation of the colony
     ant_colony = AntColony(args.alpha, args.beta, args.rho, args.Q, args.nb_ant, levels, args.method, Identity(), **method_args)
 
     best_cost = np.inf
@@ -77,8 +82,14 @@ for _ in range(1):
 
     top = time()
 
+    # distribution on the colony on several nodes
+
     communication.initial_communication()
+
+    #run the colony until max time
     while time()-top < args.max_time:
+
+        #add local method after "time local"
         if time()-top > args.time_local:
             ant_colony.local_search_method = local_search_method
 
@@ -86,9 +97,13 @@ for _ in range(1):
         ant_colony.plot_graph()
     
         communication.on_epoch_begin()
+
+        #do 1 epoch
         pathes, performances = ant_colony.epoch()
+        #share performances between different nodes
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
 
+        #get the performance of the colony over time
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
@@ -101,6 +116,7 @@ for _ in range(1):
     history["best_cost"].append(best_cost)
     history["time"].append(time() - top)
 
+    #save results
     folder_name = f"./Results/{args.alpha}_{args.beta}_{args.rho}_{args.Q}_{args.nb_ant}_{args.method}_identity_simAnn{args.kmax}_{args.t0}_{args.t_decay}"
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
