@@ -3,9 +3,9 @@
     "beta": 0,
     "rho": 0.6,
     "Q": 1,
-    "nb_ant": 1,
-    "nb_epochs": 2,
+    "nb_ant": 25,
+    "nb_epochs": 50,
     "block_min": 1,
-    "block_max": 32,
+    "block_max": 512,
     "block_size": 16
 }

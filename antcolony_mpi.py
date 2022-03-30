@@ -12,6 +12,7 @@ import numpy as np
 from pathlib import Path
 import make_all
 from tqdm import tqdm
+import time
 
 from config import N1, N2, N3, NUM_ITER
 
@@ -77,6 +78,8 @@ def folder_results():
     return path_dir
 
 
+pickle_data = {'index': [], 'n1': [], 'n2': [], 'n3': [], 'simd': [], 'Olevel': [], 'num_thread': [], 'b1': [], 'b2': [], 'b3': [], 'throughput': [], 'time': []}
+
 def save_results(lines, path_dir):
     counter = 0
     filename = "Results{}.txt"
@@ -87,6 +90,11 @@ def save_results(lines, path_dir):
     filename = path_dir + filename.format(counter)
     filename_pickle = path_dir + filename_pickle.format(counter)
 
+
+    global exec_time
+    global last_time
+
+    exec_time = time.time() - last_time
     # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
         for ant_index, ant in enumerate(lines):
@@ -96,9 +104,19 @@ def save_results(lines, path_dir):
             f.write('\n Path: %s' % (path_ant))
             f.write('\n Throughput: %s' % (perf_ant))
             f.write('\n')
+            pickle_data['index'].append(ant_index)
+            pickle_data['n1'].append(dict(ant[0])['n1'])
+            pickle_data['n2'].append(dict(ant[0])['n2'])
+            pickle_data['n3'].append(dict(ant[0])['n3'])
+            pickle_data['simd'].append(dict(ant[0])['simd'])
+            pickle_data['Olevel'].append(dict(ant[0])['Olevel'])
+            pickle_data['num_thread'].append(dict(ant[0])['num_thread'])
+            pickle_data['b1'].append(dict(ant[0])['b1'])
+            pickle_data['b2'].append(dict(ant[0])['b2'])
+            pickle_data['b3'].append(dict(ant[0])['b3'])
+            pickle_data['throughput'].append(perf_ant)
+            pickle_data['time'].append(exec_time)
 
-    with open(filename_pickle, 'wb') as f:
-        pickle.dump(lines, f)
 
 
 def check_size(b1, b2, b3):
@@ -183,7 +201,7 @@ class AntColony():
 
         return path
 
-    def update_tau(self, pathes):
+    def update_tau(self, performances, pathes):
         """ Updates the amount of pheromone on each edge based on the method choosen """
         # Basic Algorithm
         if self.method == 'basic':
@@ -231,7 +249,7 @@ class AntColony():
                         (1/self.graph[path[i]][path[i+1]]['nu'])
 
         # MMAS
-        if self.method == 'mmas':
+        if self.method == 'mmas_v2':
             tau_min = self.kwargs["tau min"]
             tau_max = self.kwargs["tau max"]
             n_to_update = self.kwargs["n to update"]
@@ -241,8 +259,31 @@ class AntColony():
                 self.graph[origin][destiny]['tau'] = max(update, tau_min)
 
             # Adding pheromone weighted by path's rank
-            for path in pathes[:n_to_update]:
-                weight = 1
+            for path_idx in range(n_to_update):
+                path = pathes[path_idx]
+                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+                    self.graph[path[i]][path[i+1]]['tau'] = min(
+                        self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                weight -= 1/n_to_update
+
+        if self.method == 'mmas_v2':
+            tau_min = self.kwargs["tau min"]
+            tau_max = self.kwargs["tau max"]
+            n_to_update = self.kwargs["n to update"]
+            # Evaporation
+            for origin, destiny in self.graph.edges(data=False):
+                update = (1-self.rho)*self.graph[origin][destiny]['tau']
+                self.graph[origin][destiny]['tau'] = max(update, tau_min)
+
+            # Adding pheromone weighted by path's rank
+            for path_idx in range(n_to_update):
+                path = pathes[path_idx]
+                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
                         (1/self.graph[path[i]][path[i+1]]['nu'])
@@ -291,7 +332,7 @@ class IndependentColonies(Communication):
         pathes = [path for _, path in sorted(
             zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
-        ant_colony.update_tau(pathes, method='mmas')
+        ant_colony.update_tau(performances, pathes, method='mmas')
         return pathes, performances
 
     def last_communication(self, best_path, best_cost):
@@ -322,7 +363,7 @@ class ExchangeAll(Communication):
             zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         # Update pheromones
-        ant_colony.update_tau(pathes)
+        ant_colony.update_tau(performances, pathes)
         return pathes, performances
 
     def last_communication(self, best_path, best_cost):
@@ -348,9 +389,13 @@ def getBlockSizes(pathes):
 
     return b1, b2, b3
 
+last_time = time.time()
+exec_time = 0
 
 def main(args):
 
+    global exec_time
+    exec_time = time.time()
     # Parameters
     from localsearch import Identity
     # Parameters
@@ -361,7 +406,7 @@ def main(args):
     levels = [("init", ["init"]),
               ("n1", [512]),
               ("n2", [512]),
-              ("n3", [1024]),
+              ("n3", [512]),
               ("simd", ["avx", "avx2", "avx512"]),
               ("Olevel", ["-O2", "-O3", "-Ofast"]),
               ("num_thread", [16]),
@@ -370,7 +415,7 @@ def main(args):
               ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
               ]
     method = "mmas"
-    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
+    mmas_args = {"tau min": 0.1, "tau max": 5, "n to update": 75}
 
     local_search_method = Identity()
     communication = ExchangeAll()
@@ -402,6 +447,7 @@ def main(args):
                     desc="Epoch Me: "+str(communication.Me))
 
     for _ in range(args['nb_epochs']):
+
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
         communication.comm.Barrier()
@@ -426,6 +472,12 @@ def main(args):
             same_solution_counter = 0
 
     if communication.Me == 0:
+
+        global pickle_data
+        filename_pickle = "Results_pickle.plk"
+        filename_pickle = path_dir + filename_pickle
+        with open(filename_pickle, 'wb') as f:
+            pickle.dump(pickle_data, f)
         pbar.close()
 
 
