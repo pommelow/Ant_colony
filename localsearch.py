@@ -21,7 +21,7 @@ def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
     if check_size(b1, b2, b3):
-        return np.inf, 0, 0
+        return np.inf, -np.inf, -np.inf
     else:
         p = subprocess.Popen([
             f"./iso3dfd-st7/bin/{exec_name}",

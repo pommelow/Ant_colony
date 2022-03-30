@@ -58,6 +58,7 @@ def run(simd, Olevel, num_thread, b1, b2, b3):
     flops = float(outputs[-2].split(" ")[-2])
     return time, throughput, flops
 
+
 def folder_results():
     """ Saves the reusults in a .txt file"""
     # print(lines)
@@ -99,6 +100,14 @@ def save_results(lines, path_dir):
     with open(filename_pickle, 'wb') as f:
         pickle.dump(lines, f)
 
+
+def check_size(b1, b2, b3):
+    cache_size = 11264000
+    size = b1*b2*b3*4
+    bigger = False
+    if size > cache_size:
+        bigger = True
+    return bigger
 
 
 class AntColony():
@@ -148,21 +157,30 @@ class AntColony():
         Return:
         path : list = [(name_lvl1, choice_lvl1), ...]
         """
-        # Start from initial node
-        path = [("init", "init")]
-        for _ in range(len(self.levels)-1):
-            items_view = self.graph[path[-1]].items()
-            # List next nodes
-            neighbors = [a for (a, _) in items_view]
-            neighbors_idx = np.arange(len(neighbors))
+        size_ok = False
+        while not size_ok:
 
-            # Choose a node according to weights
-            tau = np.array([e["tau"]
-                            for (_, e) in items_view], dtype=np.float32)
-            nu = np.array([e["nu"] for (_, e) in items_view], dtype=np.float32)
-            weights = (tau**self.alpha) * (nu**self.beta)
-            weights /= np.sum(weights)
-            path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
+            # Start from initial node
+            path = [("init", "init")]
+            for _ in range(len(self.levels)-1):
+                items_view = self.graph[path[-1]].items()
+                # List next nodes
+                neighbors = [a for (a, _) in items_view]
+                neighbors_idx = np.arange(len(neighbors))
+
+                # Choose a node according to weights
+                tau = np.array([e["tau"]
+                                for (_, e) in items_view], dtype=np.float32)
+                nu = np.array([e["nu"]
+                              for (_, e) in items_view], dtype=np.float32)
+                weights = (tau**self.alpha) * (nu**self.beta)
+                weights /= np.sum(weights)
+                path.append(
+                    neighbors[np.random.choice(neighbors_idx, p=weights)])
+            b1, b2, b3 = getBlockSizes([path])
+            if not check_size(b1[0], b2[0], b3[0]):
+                size_ok = True
+
         return path
 
     def update_tau(self, pathes):
@@ -243,7 +261,8 @@ class AntColony():
             path = self.pick_path()
 
             if MPI.COMM_WORLD.Get_rank() == 0:
-                print('[process 0] ant: ', _, ' path: ', path, file=sys.stderr)
+                pass
+                # print('[process 0] ant: ', _, ' path: ', path, file=sys.stderr)
             # 2- Do a local search
             path, cost = self.local_search_method.search_fn(self.levels, path)
 
@@ -334,10 +353,10 @@ def main(args):
 
     # Parameters
     from localsearch import Identity
-    #Parameters
-    block_min = args['block_min'] 
-    block_max = args['block_max'] 
-    block_size = args['block_size'] 
+    # Parameters
+    block_min = args['block_min']
+    block_max = args['block_max']
+    block_size = args['block_size']
 
     levels = [("init", ["init"]),
               ("n1", [512]),
@@ -365,21 +384,22 @@ def main(args):
     best_cost = np.inf
 
     communication.initial_communication()
-    to_save = []
 
-    b_pathes = []
-    b_costs = []
     # Path to save files
     if communication.Me == 0:
         path_dir = folder_results()
-    
+
+    same_solution_counter = 0
+
     print('='*20)
     print('Me: ', communication.Me, 'hostname: ', os.uname()[1])
-    
+
     print('Running with the following parameters: ', args)
     print('='*20)
     if communication.Me == 0:
-        pbar = tqdm(total=args['nb_epochs'], desc="Epoch Me: "+str(communication.Me))  # Loading bar
+        # Loading bar
+        pbar = tqdm(total=args['nb_epochs'],
+                    desc="Epoch Me: "+str(communication.Me))
 
     for _ in range(args['nb_epochs']):
         communication.on_epoch_begin()
@@ -392,11 +412,22 @@ def main(args):
             best_cost = performances[0]
 
         if communication.Me == 0:
+            best_path_short = str([item[1] for item in best_path])
+            print('Best path until epoch %s: %s' % (_, best_path_short))
+            print('Best cost until epoch %s: %s' % (_, -best_cost))
             save_results(zip(pathes, performances), path_dir)
             pbar.update(1)
 
-    if communication.Me == 0:    
-        pbar.close() 
+        if best_path == pathes[0]:
+            same_solution_counter += 1
+            if same_solution_counter >= 5:
+                break
+        else:
+            same_solution_counter = 0
+
+    if communication.Me == 0:
+        pbar.close()
+
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
@@ -405,7 +436,7 @@ if __name__ == "__main__":
             Usage: python antcolony_mpi.py -c training_config.json (or --config training_config.json)'
         raise Exception(str_error)
     try:
-        opts, _args = getopt.getopt(argv,"c:", ['config='])
+        opts, _args = getopt.getopt(argv, "c:", ['config='])
     except getopt.GetoptError as e:
         print('[error] : ', e)
 
@@ -415,5 +446,5 @@ if __name__ == "__main__":
 
     with open(config_path, 'r') as config_file:
         args = json.load(config_file)
-    
+
     main(args)
