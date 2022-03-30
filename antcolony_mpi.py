@@ -1,11 +1,9 @@
 import os
-import subprocess
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
-from config import N1, N2, N3, NUM_ITER
 
 import mpi4py
 from mpi4py import MPI
@@ -70,8 +68,14 @@ class AntColony():
         """ Show the graph """
         pos = nx.nx_pydot.graphviz_layout(self.graph, prog="dot", root="init")
         edges, tau = zip(*nx.get_edge_attributes(self.graph, 'tau').items())
-        nx.draw(self.graph, pos, node_size=10, edgelist=edges,
-                edge_color=tau, edge_cmap=plt.cm.plasma)
+        tau_min = min(tau)
+        edges_, tau_ = [], []
+        for e, t in zip(edges, tau):
+            if t != tau_min:
+                edges_.append(e)
+                tau_.append(t)
+        nx.draw(self.graph, pos, node_size=10, edgelist=edges_,
+                edge_color=tau_, edge_cmap=plt.cm.OrRd)
         plt.show()
 
     def pick_path(self):

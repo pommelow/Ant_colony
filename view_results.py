@@ -109,6 +109,6 @@ def plot_epoch(folder):
     plt.show()
 
 if __name__ == "__main__":
-    plot_parameter("./Results_mmas",label_l.index("tau_min"))
+    # plot_parameter("./Results_mmas",label_l.index("tau_min"))
     #plot_epoch("./Results_conv")
-    #plot_histories("./Results_mmas")
+    plot_histories("./Results")
