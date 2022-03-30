@@ -87,18 +87,33 @@ def save_results(lines, path_dir):
     filename = path_dir + filename.format(counter)
     filename_pickle = path_dir + filename_pickle.format(counter)
 
+    dict_ants = {}
+    for ant_index, ant in enumerate(lines):
+        if ant_index == 0:
+            headers_path = [item[0] for item in ant[0]]
+            break
+
+    dict_ants['Performance'] = []
+    for header in headers_path:
+        dict_ants[str(header)] = []
+
     # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
         for ant_index, ant in enumerate(lines):
-            path_ant = str([item[1] for item in ant[0]])
+            path_ant = [item[1] for item in ant[0]]
             perf_ant = abs(ant[1])
+            dict_ants['Performance'].append(perf_ant)
+            for header, parameter in zip(headers_path, path_ant):
+                dict_ants[str(header)].append(parameter)
+
             f.write('\n Ant %s' % (ant_index))
-            f.write('\n Path: %s' % (path_ant))
+            f.write('\n Path: %s' % (str(path_ant)))
             f.write('\n Throughput: %s' % (perf_ant))
             f.write('\n')
 
-    with open(filename_pickle, 'wb') as f:
-        pickle.dump(lines, f)
+    # Store data (serialize)
+    with open(filename_pickle, 'wb') as handle:
+        pickle.dump(dict_ants, handle)
 
 
 def check_size(b1, b2, b3):
@@ -370,7 +385,7 @@ def main(args):
               ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
               ]
     method = "mmas"
-    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 12}
+    mmas_args = {"tau min": 0.05, "tau max": 10, "n to update": 75}
 
     local_search_method = Identity()
     communication = ExchangeAll()
@@ -401,6 +416,8 @@ def main(args):
         pbar = tqdm(total=args['nb_epochs'],
                     desc="Epoch Me: "+str(communication.Me))
 
+    to_save = []
+
     for _ in range(args['nb_epochs']):
         communication.on_epoch_begin()
         pathes, performances = ant_colony.epoch()
@@ -416,6 +433,7 @@ def main(args):
             print('Best path until epoch %s: %s' % (_, best_path_short))
             print('Best cost until epoch %s: %s' % (_, -best_cost))
             save_results(zip(pathes, performances), path_dir)
+            to_save.append(zip(pathes, performances))
             pbar.update(1)
 
         if best_path == pathes[0]:
@@ -426,6 +444,31 @@ def main(args):
             same_solution_counter = 0
 
     if communication.Me == 0:
+        dict_ants = {}
+        for ant_index, ant in enumerate(to_save[0]):
+            if ant_index == 0:
+                headers_path = [item[0] for item in ant[0]]
+                break
+        dict_ants['Epoch'] = []
+        dict_ants['Ant'] = []
+        dict_ants['Performance'] = []
+        for header in headers_path:
+            dict_ants[str(header)] = []
+
+        for epoch, lines in enumerate(to_save):
+            for ant_index, ant in enumerate(lines):
+                path_ant = [item[1] for item in ant[0]]
+                perf_ant = abs(ant[1])
+                dict_ants['Performance'].append(perf_ant)
+                dict_ants['Epoch'].append(epoch)
+                dict_ants['Ant'].append(ant_index)
+                for header, parameter in zip(headers_path, path_ant):
+                    dict_ants[str(header)].append(parameter)
+
+        # Store data (serialize)
+        with open(str(path_dir + "Results_final_pickle.pkl"), 'wb') as handle:
+            pickle.dump(dict_ants, handle)
+
         pbar.close()
 
 
