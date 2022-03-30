@@ -95,28 +95,34 @@ def save_results(lines, path_dir):
     global last_time
 
     exec_time = time.time() - last_time
+    dict_ants = {}
+    for ant_index, ant in enumerate(lines):
+        if ant_index == 0:
+            headers_path = [item[0] for item in ant[0]]
+            break
+
+    dict_ants['Performance'] = []
+    dict_ants['Time'] = []
+    for header in headers_path:
+        dict_ants[str(header)] = []
+
     # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
         for ant_index, ant in enumerate(lines):
-            path_ant = str([item[1] for item in ant[0]])
+            path_ant = [item[1] for item in ant[0]]
             perf_ant = abs(ant[1])
+            dict_ants['Performance'].append(perf_ant)
+            dict_ants['Time'].append(exec_time)
+            for header, parameter in zip(headers_path, path_ant):
+                dict_ants[str(header)].append(parameter)
+
             f.write('\n Ant %s' % (ant_index))
-            f.write('\n Path: %s' % (path_ant))
+            f.write('\n Path: %s' % (str(path_ant)))
             f.write('\n Throughput: %s' % (perf_ant))
             f.write('\n')
-            pickle_data['index'].append(ant_index)
-            pickle_data['n1'].append(dict(ant[0])['n1'])
-            pickle_data['n2'].append(dict(ant[0])['n2'])
-            pickle_data['n3'].append(dict(ant[0])['n3'])
-            pickle_data['simd'].append(dict(ant[0])['simd'])
-            pickle_data['Olevel'].append(dict(ant[0])['Olevel'])
-            pickle_data['num_thread'].append(dict(ant[0])['num_thread'])
-            pickle_data['b1'].append(dict(ant[0])['b1'])
-            pickle_data['b2'].append(dict(ant[0])['b2'])
-            pickle_data['b3'].append(dict(ant[0])['b3'])
-            pickle_data['throughput'].append(perf_ant)
-            pickle_data['time'].append(exec_time)
-
+    # Store data (serialize)
+    with open(filename_pickle, 'wb') as handle:
+        pickle.dump(dict_ants, handle)
 
 
 def check_size(b1, b2, b3):
@@ -446,6 +452,8 @@ def main(args):
         pbar = tqdm(total=args['nb_epochs'],
                     desc="Epoch Me: "+str(communication.Me))
 
+    to_save = []
+
     for _ in range(args['nb_epochs']):
 
         communication.on_epoch_begin()
@@ -462,6 +470,7 @@ def main(args):
             print('Best path until epoch %s: %s' % (_, best_path_short))
             print('Best cost until epoch %s: %s' % (_, -best_cost))
             save_results(zip(pathes, performances), path_dir)
+            to_save.append(zip(pathes, performances))
             pbar.update(1)
 
         if best_path == pathes[0]:
@@ -472,12 +481,31 @@ def main(args):
             same_solution_counter = 0
 
     if communication.Me == 0:
+        dict_ants = {}
+        for ant_index, ant in enumerate(to_save[0]):
+            if ant_index == 0:
+                headers_path = [item[0] for item in ant[0]]
+                break
+        dict_ants['Epoch'] = []
+        dict_ants['Ant'] = []
+        dict_ants['Performance'] = []
+        for header in headers_path:
+            dict_ants[str(header)] = []
 
-        global pickle_data
-        filename_pickle = "Results_pickle.plk"
-        filename_pickle = path_dir + filename_pickle
-        with open(filename_pickle, 'wb') as f:
-            pickle.dump(pickle_data, f)
+        for epoch, lines in enumerate(to_save):
+            for ant_index, ant in enumerate(lines):
+                path_ant = [item[1] for item in ant[0]]
+                perf_ant = abs(ant[1])
+                dict_ants['Performance'].append(perf_ant)
+                dict_ants['Epoch'].append(epoch)
+                dict_ants['Ant'].append(ant_index)
+                for header, parameter in zip(headers_path, path_ant):
+                    dict_ants[str(header)].append(parameter)
+
+        # Store data (serialize)
+        with open(str(path_dir + "Results_final_pickle.pkl"), 'wb') as handle:
+            pickle.dump(dict_ants, handle)
+
         pbar.close()
 
 
