@@ -1,35 +1,91 @@
+import json
+import pickle
+import getopt
+import sys
 import os
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
-
+import make_all
+from tqdm import tqdm
+import time
 
 import mpi4py
 from mpi4py import MPI
 
 
-def save_results(lines):
+
+def folder_results():
     """ Saves the reusults in a .txt file"""
     # print(lines)
     counter = 0
-    filename = "Results{}.txt"
+    foldername = "Run{}"
+    # Creates a ./Results folder
     Path("./Results").mkdir(parents=True, exist_ok=True)
-    print('./Results/' + filename.format(counter))
-    while os.path.isfile('./Results/' + filename.format(counter)):
-        counter += 1
-    filename = './Results/' + filename.format(counter)
-    print(filename)
 
+    # Creates a ./Results/Run{} folder
+    while os.path.isdir('./Results/' + foldername.format(counter)):
+        counter += 1
+    Path(str("./Results/"+foldername.format(counter))
+         ).mkdir(parents=True, exist_ok=True)
+    path_dir = "./Results/"+foldername.format(counter)+'/'
+
+    return path_dir
+
+
+def save_results(lines, path_dir):
+    counter = 0
+    filename = "Results{}.txt"
+    filename_pickle = "Results{}_pickle.pkl"
+    # Creates the .txt file in ./Results/Run{}
+    while os.path.isfile(path_dir + filename.format(counter)):
+        counter += 1
+    filename = path_dir + filename.format(counter)
+    filename_pickle = path_dir + filename_pickle.format(counter)
+
+
+    global exec_time
+    global last_time
+
+    exec_time = time.time() - last_time
+    dict_ants = {}
+    for ant_index, ant in enumerate(lines):
+        if ant_index == 0:
+            headers_path = [item[0] for item in ant[0]]
+            break
+
+    dict_ants['Performance'] = []
+    dict_ants['Time'] = []
+    for header in headers_path:
+        dict_ants[str(header)] = []
+
+    # [(path1,perf1),...,(pathN,perfN)]
     with open(filename, 'w') as f:
-        for epoch, result_epoch in enumerate(lines):
-            f.write('\n Epoch: %s\n' % epoch)
-            for ant in result_epoch:
-                f.write('Time to execute: %.3f || Throughput: %.3f || Flops: %.3f' % (
-                    ant[0][0], ant[0][1], ant[0][2]))
-                f.write('\n Path: %s' % str([item[1]
-                        for item in ant[1]]))
-                f.write('\n %---')
+        for ant_index, ant in enumerate(lines):
+            path_ant = [item[1] for item in ant[0]]
+            perf_ant = abs(ant[1])
+            dict_ants['Performance'].append(perf_ant)
+            dict_ants['Time'].append(exec_time)
+            for header, parameter in zip(headers_path, path_ant):
+                dict_ants[str(header)].append(parameter)
+
+            f.write('\n Ant %s' % (ant_index))
+            f.write('\n Path: %s' % (str(path_ant)))
+            f.write('\n Throughput: %s' % (perf_ant))
+            f.write('\n')
+    # Store data (serialize)
+    with open(filename_pickle, 'wb') as handle:
+        pickle.dump(dict_ants, handle)
+
+
+def check_size(b1, b2, b3):
+    cache_size = 11264000
+    size = b1*b2*b3*4
+    bigger = False
+    if size > cache_size:
+        bigger = True
+    return bigger
 
 
 class AntColony():
@@ -85,24 +141,33 @@ class AntColony():
         Return:
         path : list = [(name_lvl1, choice_lvl1), ...]
         """
-        # Start from initial node
-        path = [("init", "init")]
-        for _ in range(len(self.levels)-1):
-            items_view = self.graph[path[-1]].items()
-            # List next nodes
-            neighbors = [a for (a, _) in items_view]
-            neighbors_idx = np.arange(len(neighbors))
+        size_ok = False
+        while not size_ok:
 
-            # Choose a node according to weights
-            tau = np.array([e["tau"]
-                           for (_, e) in items_view], dtype=np.float32)
-            nu = np.array([e["nu"] for (_, e) in items_view], dtype=np.float32)
-            weights = (tau**self.alpha) * (nu**self.beta)
-            weights /= np.sum(weights)
-            path.append(neighbors[np.random.choice(neighbors_idx, p=weights)])
+            # Start from initial node
+            path = [("init", "init")]
+            for _ in range(len(self.levels)-1):
+                items_view = self.graph[path[-1]].items()
+                # List next nodes
+                neighbors = [a for (a, _) in items_view]
+                neighbors_idx = np.arange(len(neighbors))
+
+                # Choose a node according to weights
+                tau = np.array([e["tau"]
+                                for (_, e) in items_view], dtype=np.float32)
+                nu = np.array([e["nu"]
+                              for (_, e) in items_view], dtype=np.float32)
+                weights = (tau**self.alpha) * (nu**self.beta)
+                weights /= np.sum(weights)
+                path.append(
+                    neighbors[np.random.choice(neighbors_idx, p=weights)])
+            b1, b2, b3 = getBlockSizes([path])
+            if not check_size(b1[0], b2[0], b3[0]):
+                size_ok = True
+
         return path
 
-    def update_tau(self, pathes):
+    def update_tau(self, performances, pathes):
         """ Updates the amount of pheromone on each edge based on the method choosen """
         # Basic Algorithm
         if self.method == 'basic':
@@ -150,6 +215,27 @@ class AntColony():
                         (1/self.graph[path[i]][path[i+1]]['nu'])
 
         # MMAS
+        if self.method == 'mmas_v2':
+            tau_min = self.kwargs["tau min"]
+            tau_max = self.kwargs["tau max"]
+            n_to_update = self.kwargs["n to update"]
+            # Evaporation
+            for origin, destiny in self.graph.edges(data=False):
+                update = (1-self.rho)*self.graph[origin][destiny]['tau']
+                self.graph[origin][destiny]['tau'] = max(update, tau_min)
+
+            # Adding pheromone weighted by path's rank
+            for path_idx in range(n_to_update):
+                path = pathes[path_idx]
+                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+
+                for i in range(len(path)-1):
+                    self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
+                        (1/self.graph[path[i]][path[i+1]]['nu'])
+                    self.graph[path[i]][path[i+1]]['tau'] = min(
+                        self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                weight -= 1/n_to_update
+
         if self.method == 'mmas':
             tau_min = self.kwargs["tau_min"]
             tau_max = self.kwargs["tau_max"]
@@ -160,12 +246,15 @@ class AntColony():
                 self.graph[origin][destiny]['tau'] = max(update, tau_min)
 
             # Adding pheromone weighted by path's rank
-            for path in pathes[:n_to_update]:
-                weight = 1
+            for path_idx in range(n_to_update):
+                path = pathes[path_idx]
+                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
                         (1/self.graph[path[i]][path[i+1]]['nu'])
-                    self.graph[path[i]][path[i+1]]['tau'] = min(self.graph[path[i]][path[i+1]]['tau'], tau_max)
+                    self.graph[path[i]][path[i+1]]['tau'] = min(
+                        self.graph[path[i]][path[i+1]]['tau'], tau_max)
                 weight -= 1/n_to_update
 
     def epoch(self):
@@ -177,6 +266,10 @@ class AntColony():
         for _ in range(self.nb_ant):
             # 1- Pick a path
             path = self.pick_path()
+
+            if MPI.COMM_WORLD.Get_rank() == 0:
+                pass
+                # print('[process 0] ant: ', _, ' path: ', path, file=sys.stderr)
             # 2- Do a local search
             path, cost = self.local_search_method.search_fn(self.levels, path)
 
@@ -202,9 +295,10 @@ class IndependentColonies(Communication):
         pass
 
     def on_epoch_end(self, ant_colony, pathes, performances):
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
-        ant_colony.update_tau(pathes)
+        ant_colony.update_tau(performances, pathes)
         return pathes, performances
 
     def last_communication(self, best_path, best_cost):
@@ -231,13 +325,15 @@ class ExchangeAll(Communication):
         pathes = self.comm.allreduce(pathes)
         performances = self.comm.allreduce(performances)
         # Sort all results
-        pathes = [path for _, path in sorted(zip(performances, pathes), key=lambda pair: pair[0])]
+        pathes = [path for _, path in sorted(
+            zip(performances, pathes), key=lambda pair: pair[0])]
         performances.sort()
         # Update pheromones
-        ant_colony.update_tau(pathes)
+        ant_colony.update_tau(performances, pathes)
         return pathes, performances
-    
+
     def last_communication(self, best_path, best_cost):
+        self.comm.Barrier()
         for i in range(self.NbP):
             cost = self.comm.bcast(best_cost, root=i)
             path = self.comm.bcast(best_path, root=i)
@@ -245,3 +341,150 @@ class ExchangeAll(Communication):
                 best_cost = cost
                 best_path = path
         return best_path, best_cost
+
+
+def getBlockSizes(pathes):
+    b1 = []
+    b2 = []
+    b3 = []
+    for path in pathes:
+        path = dict(path)
+        b1.append(path['b1'])
+        b2.append(path['b2'])
+        b3.append(path['b3'])
+
+    return b1, b2, b3
+
+last_time = time.time()
+exec_time = 0
+
+def main(args):
+
+    global exec_time
+    exec_time = time.time()
+    # Parameters
+    from localsearch import Identity
+    # Parameters
+    block_min = args['block_min']
+    block_max = args['block_max']
+    block_size = args['block_size']
+
+    levels = [("init", ["init"]),
+              ("n1", [512]),
+              ("n2", [512]),
+              ("n3", [512]),
+              ("simd", ["avx", "avx2", "avx512"]),
+              ("Olevel", ["-O2", "-O3", "-Ofast"]),
+              ("num_thread", [16]),
+              ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+              ]
+    method = "mmas"
+    mmas_args = {"tau min": 0.1, "tau max": 5, "n to update": 75}
+
+    local_search_method = Identity()
+    communication = ExchangeAll()
+
+    alpha = args['alpha']
+
+    ant_colony = AntColony(args['alpha'], args['beta'], args['rho'], args['Q'], args['nb_ant'],
+                           levels, method, local_search_method, **mmas_args)
+
+    best_path = None
+    best_cost = np.inf
+
+    communication.initial_communication()
+
+    # Path to save files
+    if communication.Me == 0:
+        path_dir = folder_results()
+
+    same_solution_counter = 0
+
+    print('='*20)
+    print('Me: ', communication.Me, 'hostname: ', os.uname()[1])
+
+    print('Running with the following parameters: ', args)
+    print('='*20)
+    if communication.Me == 0:
+        # Loading bar
+        pbar = tqdm(total=args['nb_epochs'],
+                    desc="Epoch Me: "+str(communication.Me))
+
+    to_save = []
+
+    for _ in range(args['nb_epochs']):
+
+        communication.on_epoch_begin()
+        pathes, performances = ant_colony.epoch()
+        communication.comm.Barrier()
+        pathes, performances = communication.on_epoch_end(
+            ant_colony, pathes, performances)
+        if performances[0] < best_cost:
+            best_path = pathes[0]
+            best_cost = performances[0]
+
+        if communication.Me == 0:
+            best_path_short = str([item[1] for item in best_path])
+            print('Best path until epoch %s: %s' % (_, best_path_short))
+            print('Best cost until epoch %s: %s' % (_, -best_cost))
+            save_results(zip(pathes, performances), path_dir)
+            to_save.append(zip(pathes, performances))
+            pbar.update(1)
+
+        if best_path == pathes[0]:
+            same_solution_counter += 1
+            if same_solution_counter >= 5:
+                break
+        else:
+            same_solution_counter = 0
+
+    if communication.Me == 0:
+        dict_ants = {}
+        for ant_index, ant in enumerate(to_save[0]):
+            if ant_index == 0:
+                headers_path = [item[0] for item in ant[0]]
+                break
+        dict_ants['Epoch'] = []
+        dict_ants['Ant'] = []
+        dict_ants['Performance'] = []
+        for header in headers_path:
+            dict_ants[str(header)] = []
+
+        for epoch, lines in enumerate(to_save):
+            for ant_index, ant in enumerate(lines):
+                path_ant = [item[1] for item in ant[0]]
+                perf_ant = abs(ant[1])
+                dict_ants['Performance'].append(perf_ant)
+                dict_ants['Epoch'].append(epoch)
+                dict_ants['Ant'].append(ant_index)
+                for header, parameter in zip(headers_path, path_ant):
+                    dict_ants[str(header)].append(parameter)
+
+        # Store data (serialize)
+        with open(str(path_dir + "Results_final_pickle.pkl"), 'wb') as handle:
+            pickle.dump(dict_ants, handle)
+
+        pbar.close()
+
+
+if __name__ == "__main__":
+    argv = sys.argv[1:]
+    if len(argv) < 2:
+        str_error = '[error] : incorrect number of parameters\n \
+            Usage: python antcolony_mpi.py -c training_config.json (or --config training_config.json)'
+        raise Exception(str_error)
+    try:
+        opts, _args = getopt.getopt(argv, "c:", ['config='])
+    except getopt.GetoptError as e:
+        print('[error] : ', e)
+
+    for opt, arg in opts:
+        if opt in ['-c', '--config']:
+            config_path = arg
+
+    with open(config_path, 'r') as config_file:
+        args = json.load(config_file)
+
+    main(args)

@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 from time import time
-from antcolony_mpi import AntColony, IndependentColonies
+from antcolony_mpi import AntColony, ExchangeAll, IndependentColonies, folder_results, save_results
 from localsearch import Identity, GreedySearch, SimulatedAnnealing, RandomizedTabu
+from tqdm import tqdm
 
 import argparse
 
@@ -33,6 +34,7 @@ parser.add_argument("--t_min", type=float, default=0.01, help="minimum temperatu
 parser.add_argument("--tabu-size", type=int, default=5, help="size of memory in tabu search")
 
 # distribution parameters
+parser.add_argument("--distribution", type=str, default="independent", choices=["independent", "exchange_all"], help="how process communicate with each other")
 
 
 args = parser.parse_args()
@@ -64,7 +66,10 @@ elif args.local_search == "simulated_annealing":
 elif args.local_search == "tabu":
     local_search_method = RandomizedTabu(args.tabu_size, args.k_max, args.k_max, args.t0, lambda t: max(args.t_min, args.t_decay * t))
 
-communication = IndependentColonies()
+if args.distribution == "independent":
+    communication = IndependentColonies()
+if args.distribution == "exchange_all":
+    communication = ExchangeAll()
 
 
 method_args = {"nb_to_update": args.nb_to_update, "tau_min": args.tau_min, "tau_max": args.tau_max}
@@ -86,41 +91,84 @@ for _ in range(1):
 
     communication.initial_communication()
 
+    # Path to save files
+    if communication.Me == 0:
+        path_dir = folder_results()
+
+    same_solution_counter = 0
+
+    print('='*20)
+    print('Me: ', communication.Me, 'hostname: ', os.uname()[1])
+
+    print('Running with the following parameters: ', args)
+    print('='*20)
+    if communication.Me == 0:
+        # Loading bar
+        pbar = tqdm(total=args.max_time,
+                    desc="Epoch Me: "+str(communication.Me))
+
+    to_save = []
     #run the colony until max time
     while time()-top < args.max_time:
-
+        top1 = time()
         #add local method after "time local"
         if time()-top > args.time_local:
             ant_colony.local_search_method = local_search_method
 
-        print("Plot graph")
-        ant_colony.plot_graph()
-    
         communication.on_epoch_begin()
 
         #do 1 epoch
         pathes, performances = ant_colony.epoch()
         #share performances between different nodes
+        communication.comm.Barrier()
         pathes, performances = communication.on_epoch_end(ant_colony, pathes, performances)
 
         #get the performance of the colony over time
         if performances[0] < best_cost:
             best_path = pathes[0]
             best_cost = performances[0]
-            history["best_cost"].append(best_cost)
-            history["time"].append(time() - top)
 
-        print(f"Time: {time() - top:.1f}s\nBest cost: {best_cost}\nBest path:{best_path}")
+        if communication.Me == 0:
+            best_path_short = str([item[1] for item in best_path])
+            print('Best path until epoch %s: %s' % (_, best_path_short))
+            print('Best cost until epoch %s: %s' % (_, -best_cost))
+            save_results(zip(pathes, performances), path_dir)
+            to_save.append(zip(pathes, performances))
+            pbar.update(int(time()-top1))
+        
+        if best_path == pathes[0]:
+            same_solution_counter += 1
+            if same_solution_counter >= 5:
+                break
+        else:
+            same_solution_counter = 0
 
     best_path, best_cost = communication.last_communication(best_path, best_cost)
-    history["best_cost"].append(best_cost)
-    history["time"].append(time() - top)
 
-    #save results
-    folder_name = f"./Results/{args.alpha}_{args.beta}_{args.rho}_{args.Q}_{args.nb_ant}_{args.method}_identity_simAnn{args.kmax}_{args.t0}_{args.t_decay}"
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
+    if communication.Me == 0:
+        dict_ants = {}
+        for ant_index, ant in enumerate(to_save[0]):
+            if ant_index == 0:
+                headers_path = [item[0] for item in ant[0]]
+                break
+        dict_ants['Epoch'] = []
+        dict_ants['Ant'] = []
+        dict_ants['Performance'] = []
+        for header in headers_path:
+            dict_ants[str(header)] = []
 
-    n = len(os.listdir(folder_name))
-    with open(folder_name + f"/{n:>03}", "wb") as file:
-        pickle.dump(history, file)
+        for epoch, lines in enumerate(to_save):
+            for ant_index, ant in enumerate(lines):
+                path_ant = [item[1] for item in ant[0]]
+                perf_ant = abs(ant[1])
+                dict_ants['Performance'].append(perf_ant)
+                dict_ants['Epoch'].append(epoch)
+                dict_ants['Ant'].append(ant_index)
+                for header, parameter in zip(headers_path, path_ant):
+                    dict_ants[str(header)].append(parameter)
+
+        # Store data (serialize)
+        with open(str(path_dir + "Results_final_pickle.pkl"), 'wb') as handle:
+            pickle.dump(dict_ants, handle)
+
+        pbar.close()

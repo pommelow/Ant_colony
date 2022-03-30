@@ -1,5 +1,6 @@
 import os
 import subprocess
+from tabnanny import check
 import numpy as np
 import random
 from abc import ABC, abstractclassmethod
@@ -7,32 +8,44 @@ from abc import ABC, abstractclassmethod
 from config import N1, N2, N3, NUM_ITER
 
 
+def check_size(b1, b2, b3):
+    cache_size = 11264000
+    size = b1*b2*b3*4
+    bigger = False
+    if size > cache_size:
+        bigger = True
+    return bigger
+
 
 def run(n1, n2, n3, simd, Olevel, num_thread, b1, b2, b3, num_iter=NUM_ITER):
     basename = 'iso3dfd_dev13_cpu'
     exec_name = basename + '_'+str(simd) + '_'+str(Olevel)+'.exe'
-    p = subprocess.Popen([
-        f"./iso3dfd-st7/bin/{exec_name}",
-        str(n1),
-        str(n2),
-        str(n3),
-        str(num_thread),
-        str(num_iter),
-        str(b1),
-        str(b2),
-        str(b3)
-    ],
-        stdout=subprocess.PIPE)
-    p.wait()
-    outputs = p.communicate()[0].decode("utf-8").split("\n")
-    time = float(outputs[-4].split(" ")[-2])
-    throughput = float(outputs[-3].split(" ")[-2])
-    flops = float(outputs[-2].split(" ")[-2])
-    return time, throughput, flops
+    if check_size(b1, b2, b3):
+        return np.inf, -np.inf, -np.inf
+    else:
+        p = subprocess.Popen([
+            f"./iso3dfd-st7/bin/{exec_name}",
+            str(n1),
+            str(n2),
+            str(n3),
+            str(num_thread),
+            str(num_iter),
+            str(b1),
+            str(b2),
+            str(b3)
+        ],
+            stdout=subprocess.PIPE)
+        p.wait()
+        outputs = p.communicate()[0].decode("utf-8").split("\n")
+        time = float(outputs[-4].split(" ")[-2])
+        throughput = float(outputs[-3].split(" ")[-2])
+        flops = float(outputs[-2].split(" ")[-2])
+        return time, throughput, flops
 
 
 def cost_fn(path):
-    return -run(**dict(path[1:]))[1]
+    """ Defines the cost function by choosing the between Time of execution, Throughput or Flops"""
+    return -run(**dict(path[1:]))[1]  # Throughput
 
 
 def neighborhood(levels, path, shuffle=True):
@@ -56,7 +69,7 @@ def neighborhood(levels, path, shuffle=True):
 
 class LocalSearch(ABC):
     def __call__(self, levels, pathes):
-        better_pathes, costs =[], []
+        better_pathes, costs = [], []
         for path in pathes:
             better_path, cost = self.search_fn(levels, path)
             better_pathes.append(better_path)
@@ -78,7 +91,7 @@ class GreedySearch(LocalSearch):
         self.kmax = kmax
 
     def search_fn(self, levels, initial_solution):
-        best_solution = initial_solution 
+        best_solution = initial_solution
         best_cost = cost_fn(best_solution)
         neighbors = neighborhood(levels, best_solution, shuffle=False)
         k = 0
@@ -86,20 +99,20 @@ class GreedySearch(LocalSearch):
         while (k < self.kmax and new_best):
             s = neighbors.pop()
             cost = cost_fn(s)
-            for neigh in neighbors :
+            for neigh in neighbors:
                 new_cost = cost_fn(neigh)
                 if new_cost < cost:
                     s = neigh
                     cost = new_cost
-        
-            if cost < best_cost :
+
+            if cost < best_cost:
                 best_solution = s
                 best_cost = cost
                 neighbors = neighborhood(levels, best_solution, shuffle=False)
             else:
                 new_best = False
             k = k+1
-                
+
         return best_solution, best_cost
 
 
@@ -133,8 +146,8 @@ class SimulatedAnnealing(LocalSearch):
 
 
 class RandomizedTabu(LocalSearch):
-    
-    def __init__(self,tabu_size=5, kmax=10, k2max=10, t0=1, update_t=lambda t: max(0.99*t, 0.1)):
+
+    def __init__(self, tabu_size=5, kmax=10, k2max=10, t0=1, update_t=lambda t: max(0.99*t, 0.1)):
         self.kmax = kmax
         self.k2max = k2max
         self.t0 = t0
@@ -167,7 +180,7 @@ class RandomizedTabu(LocalSearch):
                     s = s_prime
                     cost = cost_prime
                     neighbors = neighborhood(levels, s)
-                    neigh_tabu = self.FifoAdd(s, neigh_tabu) 
+                    neigh_tabu = self.FifoAdd(s, neigh_tabu)
                     if cost < best_cost:
                         best_solution = s
                         best_cost = cost
@@ -184,17 +197,17 @@ if __name__ == "__main__":
     block_max = 256
     block_size = 16
 
-
     levels = [("init", ["init"]),
-            ("simd", ["avx", "avx2", "avx512", "sse"]),
-            ("Olevel", ["-O2", "-O3", "-Ofast"]),
-            ("num_thread", list([2**j for j in range(0, 6)])),
-            ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-            ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
-            ]
-    
-    initial_path = [("init", "init"), ("simd", "avx"), ("Olevel", "-O2"), ("num_thread", 4), ("b1", 64), ("b2", 64), ("b3", 64)]
+              ("simd", ["avx", "avx2", "avx512", "sse"]),
+              ("Olevel", ["-O2", "-O3", "-Ofast"]),
+              ("num_thread", list([2**j for j in range(0, 6)])),
+              ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
+              ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
+              ]
+
+    initial_path = [("init", "init"), ("simd", "avx"), ("Olevel", "-O2"),
+                    ("num_thread", 4), ("b1", 64), ("b2", 64), ("b3", 64)]
     # greedy_search(levels, initial_path, 5)
     print(len(neighborhood(levels, initial_path)))
     RandomizedTabu().search_fn(levels, initial_path)
