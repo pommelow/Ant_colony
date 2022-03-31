@@ -1,0 +1,12 @@
+
+ Ant 0
+ Path: ['init', 512, 1024, 1024, 'avx512', '-O3', 16, 48, 32, 176]
+ Throughput: 665.53
+
+ Ant 1
+ Path: ['init', 512, 1024, 1024, 'avx512', '-O3', 16, 336, 304, 16]
+ Throughput: 612.46
+
+ Ant 2
+ Path: ['init', 512, 1024, 1024, 'avx512', '-Ofast', 16, 336, 480, 16]
+ Throughput: 602.09
