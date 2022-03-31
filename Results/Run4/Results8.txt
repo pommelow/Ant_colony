@@ -1,400 +1,476 @@
 
  Ant 0
- Path: ['init', 368, 448, 448, 'avx', '-Ofast', 15, 48, 16, 39]
- Throughput: 539.78
+ Path: ['init', 480, 832, 1024, 'avx', '-O3', 16, 464, 20, 203]
+ Throughput: 1770.49
 
  Ant 1
- Path: ['init', 368, 448, 448, 'avx', '-O3', 15, 32, 21, 59]
- Throughput: 501.28
+ Path: ['init', 416, 960, 896, 'avx', '-O2', 16, 512, 18, 140]
+ Throughput: 1746.58
 
  Ant 2
- Path: ['init', 336, 448, 384, 'avx512', '-O2', 15, 16, 25, 51]
- Throughput: 489.92
+ Path: ['init', 352, 896, 896, 'avx', '-O2', 16, 400, 14, 148]
+ Throughput: 1725.83
 
  Ant 3
- Path: ['init', 480, 304, 416, 'avx512', '-O3', 15, 32, 30, 133]
- Throughput: 474.18
+ Path: ['init', 320, 864, 864, 'avx2', '-Ofast', 16, 368, 28, 211]
+ Throughput: 1671.27
 
  Ant 4
- Path: ['init', 368, 448, 368, 'avx', '-Ofast', 15, 496, 39, 43]
- Throughput: 468.08
+ Path: ['init', 288, 640, 896, 'avx', '-O3', 16, 368, 14, 128]
+ Throughput: 1664.92
 
  Ant 5
- Path: ['init', 288, 400, 464, 'avx512', '-O3', 15, 32, 37, 89]
- Throughput: 454.53
+ Path: ['init', 352, 672, 768, 'avx2', '-O3', 16, 480, 12, 132]
+ Throughput: 1652.34
 
  Ant 6
- Path: ['init', 368, 288, 304, 'avx512', '-O3', 15, 32, 16, 299]
- Throughput: 438.98
+ Path: ['init', 448, 896, 608, 'avx512', '-O2', 16, 432, 8, 229]
+ Throughput: 1586.1
 
  Ant 7
- Path: ['init', 464, 400, 304, 'avx512', '-O3', 15, 32, 16, 284]
- Throughput: 437.48
+ Path: ['init', 416, 800, 832, 'avx2', '-O3', 16, 496, 30, 155]
+ Throughput: 1573.49
 
  Ant 8
- Path: ['init', 272, 448, 384, 'avx512', '-O3', 15, 32, 16, 364]
- Throughput: 436.53
+ Path: ['init', 320, 768, 864, 'avx512', '-O3', 16, 320, 8, 215]
+ Throughput: 1541.08
 
  Ant 9
- Path: ['init', 288, 352, 368, 'avx', '-Ofast', 15, 32, 21, 349]
- Throughput: 432.84
+ Path: ['init', 256, 704, 864, 'avx512', '-O2', 16, 416, 9, 221]
+ Throughput: 1529.88
 
  Ant 10
- Path: ['init', 464, 400, 304, 'avx512', '-O3', 15, 32, 16, 289]
- Throughput: 427.6
+ Path: ['init', 416, 992, 480, 'avx2', '-Ofast', 16, 400, 18, 241]
+ Throughput: 1503.24
 
  Ant 11
- Path: ['init', 464, 336, 480, 'avx2', '-O3', 15, 32, 43, 26]
- Throughput: 413.87
+ Path: ['init', 256, 768, 736, 'avx512', '-O2', 16, 352, 20, 179]
+ Throughput: 1414.43
 
  Ant 12
- Path: ['init', 336, 448, 384, 'avx512', '-O3', 15, 32, 30, 150]
- Throughput: 398.85
+ Path: ['init', 352, 384, 896, 'avx512', '-Ofast', 16, 320, 18, 146]
+ Throughput: 1400.45
 
  Ant 13
- Path: ['init', 288, 496, 368, 'avx', '-O3', 15, 32, 30, 265]
- Throughput: 396.97
+ Path: ['init', 288, 672, 416, 'avx512', '-O2', 16, 448, 26, 143]
+ Throughput: 1399.97
 
  Ant 14
- Path: ['init', 496, 368, 304, 'avx512', '-O3', 15, 32, 30, 45]
- Throughput: 371.82
+ Path: ['init', 288, 864, 448, 'avx512', '-O2', 16, 448, 17, 220]
+ Throughput: 1388.28
 
  Ant 15
- Path: ['init', 368, 368, 304, 'avx512', '-O3', 15, 32, 21, 236]
- Throughput: 366.61
+ Path: ['init', 608, 576, 928, 'avx2', '-O2', 16, 512, 12, 207]
+ Throughput: 1376.21
 
  Ant 16
- Path: ['init', 368, 448, 384, 'avx2', '-Ofast', 15, 32, 77, 99]
- Throughput: 366.09
+ Path: ['init', 320, 320, 864, 'avx2', '-Ofast', 16, 496, 18, 143]
+ Throughput: 1375.55
 
  Ant 17
- Path: ['init', 336, 448, 432, 'avx', '-O2', 15, 64, 58, 171]
- Throughput: 365.14
+ Path: ['init', 576, 768, 800, 'avx', '-Ofast', 16, 320, 21, 177]
+ Throughput: 1358.38
 
  Ant 18
- Path: ['init', 368, 464, 464, 'avx512', '-O2', 15, 288, 72, 27]
- Throughput: 363.92
+ Path: ['init', 736, 640, 832, 'avx512', '-O2', 16, 480, 25, 138]
+ Throughput: 1327.95
 
  Ant 19
- Path: ['init', 368, 448, 368, 'avx', '-O2', 15, 32, 30, 224]
- Throughput: 349.07
+ Path: ['init', 992, 352, 992, 'avx512', '-O3', 16, 480, 13, 215]
+ Throughput: 1322.16
 
  Ant 20
- Path: ['init', 496, 368, 304, 'avx512', '-O2', 15, 32, 19, 391]
- Throughput: 348.6
+ Path: ['init', 480, 320, 1024, 'avx2', '-O2', 16, 480, 36, 133]
+ Throughput: 1319.88
 
  Ant 21
- Path: ['init', 368, 448, 448, 'avx', '-O2', 15, 32, 30, 409]
- Throughput: 343.13
+ Path: ['init', 384, 832, 832, 'avx512', '-O2', 16, 288, 28, 208]
+ Throughput: 1298.88
 
  Ant 22
- Path: ['init', 496, 368, 304, 'avx512', '-O3', 15, 32, 37, 110]
- Throughput: 335.98
+ Path: ['init', 544, 864, 704, 'avx512', '-O3', 16, 416, 36, 152]
+ Throughput: 1297.35
 
  Ant 23
- Path: ['init', 288, 480, 496, 'avx512', '-O3', 15, 336, 148, 38]
- Throughput: 334.25
+ Path: ['init', 512, 640, 480, 'avx', '-Ofast', 16, 496, 11, 170]
+ Throughput: 1283.57
 
  Ant 24
- Path: ['init', 368, 448, 384, 'avx512', '-O3', 15, 32, 43, 191]
- Throughput: 328.6
+ Path: ['init', 576, 416, 1024, 'avx512', '-O2', 16, 416, 18, 157]
+ Throughput: 1280.39
 
  Ant 25
- Path: ['init', 288, 320, 352, 'avx512', '-O3', 15, 32, 16, 444]
- Throughput: 327.19
+ Path: ['init', 608, 1024, 800, 'avx', '-O2', 16, 384, 27, 196]
+ Throughput: 1277.65
 
  Ant 26
- Path: ['init', 288, 352, 304, 'avx512', '-O2', 15, 32, 19, 456]
- Throughput: 311.59
+ Path: ['init', 256, 640, 704, 'avx512', '-O2', 16, 512, 19, 213]
+ Throughput: 1267.54
 
  Ant 27
- Path: ['init', 432, 384, 352, 'avx512', '-O2', 15, 32, 61, 184]
- Throughput: 302.69
+ Path: ['init', 800, 448, 544, 'avx512', '-Ofast', 16, 464, 8, 204]
+ Throughput: 1264.31
 
  Ant 28
- Path: ['init', 400, 304, 304, 'avx512', '-O3', 15, 32, 24, 408]
- Throughput: 300.77
+ Path: ['init', 416, 928, 608, 'avx', '-Ofast', 16, 192, 18, 227]
+ Throughput: 1256.47
 
  Ant 29
- Path: ['init', 336, 448, 368, 'avx512', '-O2', 15, 80, 71, 125]
- Throughput: 291.49
+ Path: ['init', 704, 672, 608, 'avx', '-Ofast', 16, 512, 29, 152]
+ Throughput: 1255.78
 
  Ant 30
- Path: ['init', 464, 480, 448, 'avx', '-Ofast', 15, 304, 184, 89]
- Throughput: 289.4
+ Path: ['init', 640, 576, 704, 'avx2', '-O2', 16, 448, 11, 201]
+ Throughput: 1251.43
 
  Ant 31
- Path: ['init', 368, 464, 464, 'avx512', '-O2', 15, 32, 64, 143]
- Throughput: 289.07
+ Path: ['init', 384, 640, 512, 'avx512', '-Ofast', 16, 416, 12, 135]
+ Throughput: 1244.52
 
  Ant 32
- Path: ['init', 336, 448, 368, 'avx512', '-O3', 15, 288, 43, 381]
- Throughput: 257.45
+ Path: ['init', 416, 384, 992, 'avx512', '-Ofast', 16, 384, 41, 146]
+ Throughput: 1238.75
 
  Ant 33
- Path: ['init', 288, 288, 400, 'avx', '-O3', 15, 16, 189, 44]
- Throughput: 247.47
+ Path: ['init', 448, 832, 1024, 'avx512', '-O3', 16, 256, 9, 236]
+ Throughput: 1236.44
 
  Ant 34
- Path: ['init', 272, 448, 448, 'avx', '-O2', 15, 208, 315, 55]
- Throughput: 228.02
+ Path: ['init', 800, 448, 800, 'avx', '-O2', 16, 336, 8, 248]
+ Throughput: 1235.39
 
  Ant 35
- Path: ['init', 368, 448, 384, 'avx2', '-Ofast', 15, 288, 289, 60]
- Throughput: 220.83
+ Path: ['init', 448, 288, 640, 'avx512', '-O3', 16, 336, 11, 236]
+ Throughput: 1215.65
 
  Ant 36
- Path: ['init', 368, 448, 368, 'avx512', '-O2', 15, 32, 97, 193]
- Throughput: 217.77
+ Path: ['init', 256, 1024, 256, 'avx', '-O2', 16, 448, 19, 183]
+ Throughput: 1213.33
 
  Ant 37
- Path: ['init', 368, 448, 384, 'avx2', '-O3', 15, 32, 61, 293]
- Throughput: 209.01
+ Path: ['init', 736, 992, 768, 'avx512', '-O3', 16, 416, 35, 135]
+ Throughput: 1208.17
 
  Ant 38
- Path: ['init', 272, 448, 384, 'avx2', '-Ofast', 15, 32, 61, 387]
- Throughput: 203.29
+ Path: ['init', 416, 960, 1024, 'avx512', '-O3', 16, 160, 44, 147]
+ Throughput: 1205.24
 
  Ant 39
- Path: ['init', 288, 432, 336, 'avx', '-O3', 15, 32, 294, 63]
- Throughput: 175.48
+ Path: ['init', 672, 608, 480, 'avx', '-O2', 16, 400, 11, 206]
+ Throughput: 1198.57
 
  Ant 40
- Path: ['init', 368, 464, 320, 'avx512', '-O3', 15, 64, 333, 75]
- Throughput: 151.27
+ Path: ['init', 512, 992, 576, 'avx', '-O3', 16, 368, 19, 246]
+ Throughput: 1189.23
 
  Ant 41
- Path: ['init', 288, 352, 432, 'avx2', '-Ofast', 15, 448, 66, 437]
- Throughput: 142.49
+ Path: ['init', 704, 576, 480, 'avx512', '-O3', 16, 448, 18, 131]
+ Throughput: 1188.28
 
  Ant 42
- Path: ['init', 480, 496, 272, 'avx', '-O3', 15, 448, 240, 105]
- Throughput: 140.2
+ Path: ['init', 480, 576, 704, 'avx2', '-Ofast', 16, 272, 17, 175]
+ Throughput: 1165.82
 
  Ant 43
- Path: ['init', 304, 256, 320, 'avx512', '-O2', 15, 32, 61, 216]
- Throughput: 134.86
+ Path: ['init', 960, 896, 800, 'avx2', '-O2', 16, 256, 24, 155]
+ Throughput: 1162.5
 
  Ant 44
- Path: ['init', 368, 448, 384, 'avx512', '-O3', 15, 32, 100, 399]
- Throughput: 129.83
+ Path: ['init', 448, 864, 512, 'avx', '-O2', 16, 224, 29, 241]
+ Throughput: 1157.83
 
  Ant 45
- Path: ['init', 288, 480, 288, 'avx512', '-O2', 15, 288, 115, 339]
- Throughput: 123.12
+ Path: ['init', 288, 928, 320, 'avx', '-Ofast', 16, 224, 14, 175]
+ Throughput: 1156.14
 
  Ant 46
- Path: ['init', 288, 400, 256, 'avx', '-O2', 15, 496, 102, 379]
- Throughput: 122.56
+ Path: ['init', 288, 480, 512, 'avx2', '-O3', 16, 256, 19, 208]
+ Throughput: 1153.85
 
  Ant 47
- Path: ['init', 288, 352, 352, 'avx512', '-O3', 15, 256, 184, 150]
- Throughput: 120.28
+ Path: ['init', 288, 960, 512, 'avx2', '-Ofast', 16, 224, 33, 227]
+ Throughput: 1142.58
 
  Ant 48
- Path: ['init', 368, 448, 384, 'avx2', '-O3', 15, 32, 222, 185]
- Throughput: 119.52
+ Path: ['init', 704, 672, 960, 'avx2', '-O2', 16, 352, 35, 186]
+ Throughput: 1136.21
 
  Ant 49
- Path: ['init', 496, 368, 304, 'avx512', '-O3', 15, 256, 141, 158]
- Throughput: 117.0
+ Path: ['init', 736, 736, 1024, 'avx512', '-Ofast', 16, 224, 31, 211]
+ Throughput: 1134.4
 
  Ant 50
- Path: ['init', 272, 448, 352, 'avx512', '-O3', 15, 32, 132, 471]
- Throughput: 113.44
+ Path: ['init', 992, 864, 768, 'avx', '-Ofast', 16, 432, 27, 241]
+ Throughput: 1132.18
 
  Ant 51
- Path: ['init', 272, 464, 400, 'avx', '-O3', 15, 448, 284, 144]
- Throughput: 108.45
+ Path: ['init', 448, 544, 864, 'avx2', '-O2', 16, 256, 48, 152]
+ Throughput: 1129.41
 
  Ant 52
- Path: ['init', 496, 368, 304, 'avx512', '-O3', 15, 32, 162, 163]
- Throughput: 105.31
+ Path: ['init', 704, 768, 512, 'avx', '-O2', 16, 304, 13, 211]
+ Throughput: 1120.93
 
  Ant 53
- Path: ['init', 336, 288, 496, 'avx512', '-O2', 15, 256, 488, 137]
- Throughput: 102.92
+ Path: ['init', 352, 416, 928, 'avx2', '-Ofast', 16, 160, 18, 172]
+ Throughput: 1120.57
 
  Ant 54
- Path: ['init', 496, 352, 352, 'avx512', '-O3', 15, 32, 118, 314]
- Throughput: 97.44
+ Path: ['init', 512, 608, 1024, 'avx2', '-Ofast', 16, 416, 40, 163]
+ Throughput: 1110.36
 
  Ant 55
- Path: ['init', 288, 400, 464, 'avx512', '-O2', 15, 32, 422, 157]
- Throughput: 94.59
+ Path: ['init', 640, 704, 288, 'avx2', '-O2', 16, 368, 19, 136]
+ Throughput: 1103.2
 
  Ant 56
- Path: ['init', 464, 400, 416, 'avx512', '-O2', 15, 32, 348, 143]
- Throughput: 91.3
+ Path: ['init', 416, 480, 544, 'avx2', '-O2', 16, 240, 11, 140]
+ Throughput: 1101.5
 
  Ant 57
- Path: ['init', 336, 448, 384, 'avx', '-O3', 15, 32, 452, 104]
- Throughput: 91.25
+ Path: ['init', 800, 512, 640, 'avx512', '-Ofast', 16, 208, 24, 236]
+ Throughput: 1101.25
 
  Ant 58
- Path: ['init', 368, 464, 464, 'avx512', '-O2', 15, 32, 243, 355]
- Throughput: 88.83
+ Path: ['init', 256, 352, 768, 'avx2', '-Ofast', 16, 240, 22, 153]
+ Throughput: 1096.83
 
  Ant 59
- Path: ['init', 288, 352, 432, 'avx2', '-O3', 15, 32, 158, 358]
- Throughput: 87.16
+ Path: ['init', 608, 832, 288, 'avx512', '-Ofast', 16, 400, 18, 203]
+ Throughput: 1095.46
 
  Ant 60
- Path: ['init', 368, 448, 448, 'avx', '-O3', 15, 32, 389, 169]
- Throughput: 87.14
+ Path: ['init', 352, 928, 800, 'avx2', '-O2', 16, 144, 9, 238]
+ Throughput: 1087.44
 
  Ant 61
- Path: ['init', 368, 448, 368, 'avx', '-O3', 15, 48, 232, 279]
- Throughput: 82.91
+ Path: ['init', 960, 608, 704, 'avx', '-O3', 16, 336, 30, 241]
+ Throughput: 1086.24
 
  Ant 62
- Path: ['init', 464, 400, 336, 'avx2', '-Ofast', 15, 64, 137, 320]
- Throughput: 81.92
+ Path: ['init', 320, 960, 256, 'avx512', '-O3', 16, 320, 38, 172]
+ Throughput: 1082.67
 
  Ant 63
- Path: ['init', 368, 416, 352, 'avx512', '-O3', 15, 64, 441, 117]
- Throughput: 80.54
+ Path: ['init', 512, 288, 480, 'avx', '-Ofast', 16, 496, 12, 173]
+ Throughput: 1079.3
 
  Ant 64
- Path: ['init', 368, 448, 448, 'avx', '-O3', 15, 32, 169, 464]
- Throughput: 79.18
+ Path: ['init', 672, 608, 576, 'avx512', '-O2', 16, 480, 40, 144]
+ Throughput: 1076.67
 
  Ant 65
- Path: ['init', 368, 448, 448, 'avx', '-O2', 15, 32, 167, 451]
- Throughput: 78.73
+ Path: ['init', 768, 864, 288, 'avx512', '-O3', 16, 496, 25, 151]
+ Throughput: 1071.87
 
  Ant 66
- Path: ['init', 368, 320, 336, 'avx', '-O3', 15, 96, 176, 263]
- Throughput: 77.33
+ Path: ['init', 864, 480, 640, 'avx512', '-O3', 16, 384, 21, 202]
+ Throughput: 1067.49
 
  Ant 67
- Path: ['init', 368, 448, 384, 'avx2', '-Ofast', 15, 32, 317, 161]
- Throughput: 76.76
+ Path: ['init', 288, 256, 672, 'avx', '-O2', 16, 464, 27, 141]
+ Throughput: 1067.11
 
  Ant 68
- Path: ['init', 368, 448, 448, 'avx', '-O3', 15, 32, 460, 168]
- Throughput: 72.73
+ Path: ['init', 992, 1024, 416, 'avx2', '-Ofast', 16, 272, 10, 178]
+ Throughput: 1066.03
 
  Ant 69
- Path: ['init', 288, 480, 496, 'avx512', '-O3', 15, 448, 297, 357]
- Throughput: 68.75
+ Path: ['init', 544, 256, 704, 'avx2', '-O3', 16, 448, 10, 186]
+ Throughput: 1062.95
 
  Ant 70
- Path: ['init', 496, 368, 304, 'avx512', '-O3', 15, 64, 199, 386]
- Throughput: 67.06
+ Path: ['init', 864, 256, 704, 'avx', '-Ofast', 16, 272, 20, 128]
+ Throughput: 1058.96
 
  Ant 71
- Path: ['init', 336, 384, 352, 'avx512', '-O2', 15, 176, 186, 485]
- Throughput: 63.41
+ Path: ['init', 320, 1024, 256, 'avx512', '-O2', 16, 336, 30, 248]
+ Throughput: 1053.61
 
  Ant 72
- Path: ['init', 368, 368, 304, 'avx512', '-O2', 15, 32, 224, 469]
- Throughput: 61.18
+ Path: ['init', 736, 960, 256, 'avx512', '-Ofast', 16, 432, 26, 166]
+ Throughput: 1045.45
 
  Ant 73
- Path: ['init', 288, 432, 400, 'avx', '-O2', 15, 128, 476, 309]
- Throughput: 61.05
+ Path: ['init', 992, 416, 768, 'avx2', '-O2', 16, 416, 25, 233]
+ Throughput: 1043.7
 
  Ant 74
- Path: ['init', 368, 448, 448, 'avx', '-O3', 15, 64, 484, 216]
- Throughput: 59.12
+ Path: ['init', 384, 640, 480, 'avx2', '-Ofast', 16, 336, 24, 247]
+ Throughput: 1038.21
 
  Ant 75
- Path: ['init', 288, 320, 336, 'avx', '-Ofast', 15, 256, 277, 177]
- Throughput: 58.75
+ Path: ['init', 416, 672, 896, 'avx', '-O3', 16, 240, 53, 215]
+ Throughput: 1031.44
 
  Ant 76
- Path: ['init', 272, 448, 448, 'avx', '-O3', 15, 32, 482, 285]
- Throughput: 58.49
+ Path: ['init', 672, 512, 640, 'avx512', '-O3', 16, 336, 35, 233]
+ Throughput: 1027.15
 
  Ant 77
- Path: ['init', 288, 400, 304, 'avx512', '-O2', 15, 48, 497, 196]
- Throughput: 57.86
+ Path: ['init', 352, 352, 928, 'avx512', '-Ofast', 16, 176, 57, 152]
+ Throughput: 1020.5
 
  Ant 78
- Path: ['init', 320, 448, 384, 'avx2', '-Ofast', 15, 64, 300, 241]
- Throughput: 57.52
+ Path: ['init', 768, 1024, 288, 'avx512', '-Ofast', 16, 224, 17, 146]
+ Throughput: 1020.11
 
  Ant 79
- Path: ['init', 336, 384, 352, 'avx512', '-O3', 15, 416, 234, 316]
- Throughput: 51.86
+ Path: ['init', 704, 896, 640, 'avx', '-Ofast', 16, 208, 51, 135]
+ Throughput: 1009.68
 
  Ant 80
- Path: ['init', 288, 400, 416, 'avx512', '-O2', 15, 32, 494, 305]
- Throughput: 51.39
+ Path: ['init', 832, 768, 800, 'avx', '-O2', 16, 144, 31, 150]
+ Throughput: 1003.71
 
  Ant 81
- Path: ['init', 496, 304, 288, 'avx2', '-O3', 15, 256, 206, 507]
- Throughput: 50.38
+ Path: ['init', 768, 800, 928, 'avx', '-Ofast', 16, 128, 10, 191]
+ Throughput: 992.34
 
  Ant 82
- Path: ['init', 336, 384, 352, 'avx', '-O2', 15, 496, 395, 192]
- Throughput: 50.14
+ Path: ['init', 992, 480, 864, 'avx', '-Ofast', 16, 160, 32, 245]
+ Throughput: 991.27
 
  Ant 83
- Path: ['init', 288, 480, 496, 'avx512', '-O3', 15, 32, 506, 279]
- Throughput: 49.95
+ Path: ['init', 672, 800, 704, 'avx', '-O2', 16, 304, 54, 150]
+ Throughput: 986.23
 
  Ant 84
- Path: ['init', 464, 400, 432, 'avx2', '-O3', 15, 64, 341, 430]
- Throughput: 43.51
+ Path: ['init', 864, 672, 992, 'avx2', '-O3', 16, 304, 49, 142]
+ Throughput: 984.22
 
  Ant 85
- Path: ['init', 288, 352, 352, 'avx512', '-O3', 15, 32, 368, 492]
- Throughput: 42.18
+ Path: ['init', 1024, 608, 544, 'avx2', '-Ofast', 16, 464, 18, 236]
+ Throughput: 980.5
 
  Ant 86
- Path: ['init', 288, 352, 416, 'avx2', '-Ofast', 15, 32, 233, 383]
- Throughput: 41.33
+ Path: ['init', 704, 736, 608, 'avx', '-O3', 16, 256, 45, 244]
+ Throughput: 979.25
 
  Ant 87
- Path: ['init', 496, 368, 304, 'avx512', '-O2', 15, 64, 433, 507]
- Throughput: 39.33
+ Path: ['init', 832, 448, 672, 'avx512', '-O2', 16, 288, 32, 159]
+ Throughput: 974.69
 
  Ant 88
- Path: ['init', 368, 448, 368, 'avx512', '-Ofast', 15, 32, 401, 314]
- Throughput: 38.15
+ Path: ['init', 544, 640, 352, 'avx512', '-Ofast', 16, 224, 20, 203]
+ Throughput: 973.57
 
  Ant 89
- Path: ['init', 272, 448, 368, 'avx', '-O3', 15, 16, 414, 274]
- Throughput: 37.64
+ Path: ['init', 864, 928, 928, 'avx512', '-Ofast', 16, 192, 54, 171]
+ Throughput: 964.17
 
  Ant 90
- Path: ['init', 336, 448, 448, 'avx', '-O3', 15, 32, 373, 479]
- Throughput: 34.58
+ Path: ['init', 448, 320, 416, 'avx', '-Ofast', 16, 224, 16, 231]
+ Throughput: 961.28
 
  Ant 91
- Path: ['init', 368, 416, 272, 'avx512', '-O2', 15, 64, 390, 351]
- Throughput: 33.9
+ Path: ['init', 672, 960, 480, 'avx2', '-O2', 16, 336, 50, 162]
+ Throughput: 956.51
 
  Ant 92
- Path: ['init', 368, 448, 384, 'avx512', '-O3', 15, 256, 476, 412]
- Throughput: 33.44
+ Path: ['init', 640, 928, 864, 'avx512', '-O2', 16, 144, 54, 184]
+ Throughput: 956.24
 
  Ant 93
- Path: ['init', 272, 448, 304, 'avx512', '-O3', 15, 32, 381, 485]
- Throughput: 32.27
+ Path: ['init', 896, 352, 864, 'avx', '-Ofast', 16, 464, 35, 128]
+ Throughput: 951.29
 
  Ant 94
- Path: ['init', 368, 448, 384, 'avx512', '-O3', 15, 256, 441, 367]
- Throughput: 30.34
+ Path: ['init', 320, 384, 544, 'avx', '-Ofast', 16, 208, 24, 133]
+ Throughput: 950.91
 
  Ant 95
- Path: ['init', 288, 352, 432, 'avx2', '-Ofast', 15, 256, 461, 469]
- Throughput: 29.71
+ Path: ['init', 992, 672, 288, 'avx512', '-Ofast', 16, 432, 30, 186]
+ Throughput: 943.04
 
  Ant 96
- Path: ['init', 288, 352, 432, 'avx2', '-O3', 15, 416, 404, 404]
- Throughput: 29.59
+ Path: ['init', 480, 384, 320, 'avx512', '-O3', 16, 240, 8, 253]
+ Throughput: 936.84
 
  Ant 97
- Path: ['init', 368, 320, 336, 'avx', '-O3', 15, 32, 316, 301]
- Throughput: 29.02
+ Path: ['init', 640, 416, 544, 'avx2', '-O3', 16, 192, 36, 148]
+ Throughput: 923.02
 
  Ant 98
- Path: ['init', 336, 384, 480, 'avx', '-O3', 15, 496, 371, 499]
- Throughput: 26.1
+ Path: ['init', 672, 608, 704, 'avx2', '-O2', 16, 176, 52, 166]
+ Throughput: 918.24
 
  Ant 99
- Path: ['init', 320, 384, 352, 'avx512', '-O2', 15, 32, 505, 323]
- Throughput: 24.94
+ Path: ['init', 800, 480, 256, 'avx2', '-O2', 16, 208, 11, 242]
+ Throughput: 917.15
+
+ Ant 100
+ Path: ['init', 512, 672, 448, 'avx', '-O3', 16, 144, 17, 159]
+ Throughput: 900.6
+
+ Ant 101
+ Path: ['init', 256, 832, 352, 'avx512', '-O3', 16, 224, 58, 149]
+ Throughput: 897.41
+
+ Ant 102
+ Path: ['init', 736, 704, 320, 'avx2', '-Ofast', 16, 432, 37, 175]
+ Throughput: 884.59
+
+ Ant 103
+ Path: ['init', 768, 704, 384, 'avx2', '-O3', 16, 128, 10, 193]
+ Throughput: 865.53
+
+ Ant 104
+ Path: ['init', 416, 704, 416, 'avx', '-O3', 16, 240, 63, 137]
+ Throughput: 849.32
+
+ Ant 105
+ Path: ['init', 576, 608, 416, 'avx512', '-O3', 16, 144, 30, 185]
+ Throughput: 835.48
+
+ Ant 106
+ Path: ['init', 672, 288, 256, 'avx', '-O3', 16, 416, 10, 251]
+ Throughput: 835.2
+
+ Ant 107
+ Path: ['init', 864, 544, 480, 'avx', '-O3', 16, 240, 39, 221]
+ Throughput: 833.85
+
+ Ant 108
+ Path: ['init', 320, 256, 512, 'avx512', '-O3', 16, 256, 30, 211]
+ Throughput: 826.99
+
+ Ant 109
+ Path: ['init', 736, 288, 832, 'avx', '-Ofast', 16, 160, 35, 184]
+ Throughput: 803.21
+
+ Ant 110
+ Path: ['init', 704, 416, 288, 'avx2', '-Ofast', 16, 144, 25, 231]
+ Throughput: 779.49
+
+ Ant 111
+ Path: ['init', 416, 384, 352, 'avx', '-Ofast', 16, 144, 38, 219]
+ Throughput: 775.31
+
+ Ant 112
+ Path: ['init', 1024, 480, 864, 'avx512', '-O2', 16, 192, 45, 145]
+ Throughput: 769.35
+
+ Ant 113
+ Path: ['init', 1024, 928, 1024, 'avx', '-Ofast', 16, 368, 44, 172]
+ Throughput: 759.65
+
+ Ant 114
+ Path: ['init', 352, 352, 352, 'avx', '-O3', 16, 160, 39, 234]
+ Throughput: 741.19
+
+ Ant 115
+ Path: ['init', 608, 800, 288, 'avx2', '-Ofast', 16, 144, 53, 149]
+ Throughput: 724.55
+
+ Ant 116
+ Path: ['init', 800, 352, 448, 'avx512', '-O3', 16, 320, 60, 135]
+ Throughput: 688.09
+
+ Ant 117
+ Path: ['init', 960, 256, 320, 'avx', '-O2', 16, 272, 33, 213]
+ Throughput: 678.49
+
+ Ant 118
+ Path: ['init', 1024, 576, 608, 'avx2', '-Ofast', 16, 240, 61, 133]
+ Throughput: 669.69
