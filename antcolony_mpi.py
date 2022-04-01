@@ -80,12 +80,10 @@ def save_results(lines, path_dir):
 
 
 def check_size(b1, b2, b3):
+    """ Check if the cache block size is greatter than the cache size (l3) """
     cache_size = 11264000
     size = b1*b2*b3*4
-    bigger = False
-    if size > cache_size:
-        bigger = True
-    return bigger
+    return size > cache_size
 
 
 class AntColony():
@@ -268,8 +266,8 @@ class AntColony():
             path = self.pick_path()
 
             if MPI.COMM_WORLD.Get_rank() == 0:
-                pass
                 # print('[process 0] ant: ', _, ' path: ', path, file=sys.stderr)
+                pass
             # 2- Do a local search
             path, cost = self.local_search_method.search_fn(self.levels, path)
 
@@ -354,137 +352,3 @@ def getBlockSizes(pathes):
         b3.append(path['b3'])
 
     return b1, b2, b3
-
-last_time = time.time()
-exec_time = 0
-
-def main(args):
-
-    global exec_time
-    exec_time = time.time()
-    # Parameters
-    from localsearch import Identity
-    # Parameters
-    block_min = args['block_min']
-    block_max = args['block_max']
-    block_size = args['block_size']
-
-    levels = [("init", ["init"]),
-              ("n1", [512]),
-              ("n2", [512]),
-              ("n3", [512]),
-              ("simd", ["avx", "avx2", "avx512"]),
-              ("Olevel", ["-O2", "-O3", "-Ofast"]),
-              ("num_thread", [16]),
-              ("b1", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-              ("b2", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0))),
-              ("b3", list(np.delete(np.arange(block_min-1, block_max+1, block_size), 0)))
-              ]
-    method = "mmas"
-    mmas_args = {"tau min": 0.1, "tau max": 5, "n to update": 75}
-
-    local_search_method = Identity()
-    communication = ExchangeAll()
-
-    alpha = args['alpha']
-
-    ant_colony = AntColony(args['alpha'], args['beta'], args['rho'], args['Q'], args['nb_ant'],
-                           levels, method, local_search_method, **mmas_args)
-
-    best_path = None
-    best_cost = np.inf
-
-    communication.initial_communication()
-
-    # Path to save files
-    if communication.Me == 0:
-        path_dir = folder_results()
-
-    same_solution_counter = 0
-
-    print('='*20)
-    print('Me: ', communication.Me, 'hostname: ', os.uname()[1])
-
-    print('Running with the following parameters: ', args)
-    print('='*20)
-    if communication.Me == 0:
-        # Loading bar
-        pbar = tqdm(total=args['nb_epochs'],
-                    desc="Epoch Me: "+str(communication.Me))
-
-    to_save = []
-
-    for _ in range(args['nb_epochs']):
-
-        communication.on_epoch_begin()
-        pathes, performances = ant_colony.epoch()
-        communication.comm.Barrier()
-        pathes, performances = communication.on_epoch_end(
-            ant_colony, pathes, performances)
-        if performances[0] < best_cost:
-            best_path = pathes[0]
-            best_cost = performances[0]
-
-        if communication.Me == 0:
-            best_path_short = str([item[1] for item in best_path])
-            print('Best path until epoch %s: %s' % (_, best_path_short))
-            print('Best cost until epoch %s: %s' % (_, -best_cost))
-            save_results(zip(pathes, performances), path_dir)
-            to_save.append(zip(pathes, performances))
-            pbar.update(1)
-
-        if best_path == pathes[0]:
-            same_solution_counter += 1
-            if same_solution_counter >= 5:
-                break
-        else:
-            same_solution_counter = 0
-
-    if communication.Me == 0:
-        dict_ants = {}
-        for ant_index, ant in enumerate(to_save[0]):
-            if ant_index == 0:
-                headers_path = [item[0] for item in ant[0]]
-                break
-        dict_ants['Epoch'] = []
-        dict_ants['Ant'] = []
-        dict_ants['Performance'] = []
-        for header in headers_path:
-            dict_ants[str(header)] = []
-
-        for epoch, lines in enumerate(to_save):
-            for ant_index, ant in enumerate(lines):
-                path_ant = [item[1] for item in ant[0]]
-                perf_ant = abs(ant[1])
-                dict_ants['Performance'].append(perf_ant)
-                dict_ants['Epoch'].append(epoch)
-                dict_ants['Ant'].append(ant_index)
-                for header, parameter in zip(headers_path, path_ant):
-                    dict_ants[str(header)].append(parameter)
-
-        # Store data (serialize)
-        with open(str(path_dir + "Results_final_pickle.pkl"), 'wb') as handle:
-            pickle.dump(dict_ants, handle)
-
-        pbar.close()
-
-
-if __name__ == "__main__":
-    argv = sys.argv[1:]
-    if len(argv) < 2:
-        str_error = '[error] : incorrect number of parameters\n \
-            Usage: python antcolony_mpi.py -c training_config.json (or --config training_config.json)'
-        raise Exception(str_error)
-    try:
-        opts, _args = getopt.getopt(argv, "c:", ['config='])
-    except getopt.GetoptError as e:
-        print('[error] : ', e)
-
-    for opt, arg in opts:
-        if opt in ['-c', '--config']:
-            config_path = arg
-
-    with open(config_path, 'r') as config_file:
-        args = json.load(config_file)
-
-    main(args)
