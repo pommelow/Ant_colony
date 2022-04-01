@@ -19,7 +19,7 @@ Our project is to apply Ant colony optimization on the [iso3Dfd problem](https:/
   
   The results will be saved in the "Results" directory as "Result_final_pickle" and the vizualisation of the best cost over time can be plot by running the view_result.py file 
   
-- To create a colony running on several nodes, you can change the options in the benchmark_30_01.sh file and run a <code> sbatch benchmark_30_01.sh </code> in the shell. The results will be displayed as "RunX" in the Results directory, to visualize it, 
+- To create a colony running on several nodes, you can change the options in the benchmark_30_01.sh file and run a <code> sbatch benchmark_30_01.sh </code> in the shell. The results will be displayed as "RunX" in the Results directory.
 
 
 
