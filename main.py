@@ -23,7 +23,7 @@ parser.add_argument("--nb_ant", type=int, default=25,
 parser.add_argument("--method", type=str, default="mmas",
                     choices=["basic", "asrank", "elitist", "mmas"], help="")
 parser.add_argument("--local-search", type=str, default="identity", choices=[
-                    "identidy", "greedy", "simulated_annealing", "tabu"], help="identity means no local search")
+                    "identity", "greedy", "simulated_annealing", "tabu"], help="identity means no local search")
 parser.add_argument("--max_time", type=float, default=1800,
                     help="maximum execution time of the ant colony")
 
@@ -127,6 +127,7 @@ for _ in range(1):
     # Path to save files
     if communication.Me == 0:
         path_dir = folder_results()
+        print('Run = ', path_dir)
 
     same_solution_counter = 0
 

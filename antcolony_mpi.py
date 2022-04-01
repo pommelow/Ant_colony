@@ -15,7 +15,6 @@ import mpi4py
 from mpi4py import MPI
 
 
-
 def folder_results():
     """ Saves the reusults in a .txt file"""
     # print(lines)
@@ -43,7 +42,6 @@ def save_results(lines, path_dir):
         counter += 1
     filename = path_dir + filename.format(counter)
     filename_pickle = path_dir + filename_pickle.format(counter)
-
 
     global exec_time
     global last_time
@@ -227,7 +225,8 @@ class AntColony():
             # Adding pheromone weighted by path's rank
             for path_idx in range(n_to_update):
                 path = pathes[path_idx]
-                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+                weight = performances[path_idx] / \
+                    np.array(performances[:n_to_update]).sum()
 
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
@@ -248,7 +247,8 @@ class AntColony():
             # Adding pheromone weighted by path's rank
             for path_idx in range(n_to_update):
                 path = pathes[path_idx]
-                weight = performances[path_idx]/np.array(performances[:n_to_update]).sum()
+                weight = performances[path_idx] / \
+                    np.array(performances[:n_to_update]).sum()
 
                 for i in range(len(path)-1):
                     self.graph[path[i]][path[i+1]]['tau'] += weight*self.Q / \
@@ -355,8 +355,10 @@ def getBlockSizes(pathes):
 
     return b1, b2, b3
 
+
 last_time = time.time()
 exec_time = 0
+
 
 def main(args):
 
